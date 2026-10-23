@@ -1,0 +1,5 @@
+Première version publique de VoxFlow, la dictée vocale 100 % locale pour macOS.
+
+Maintiens Fn pour dicter, ou tape deux fois sur Fn pour dicter mains libres. Le texte est transcrit par Voxtral Mini 4B Realtime (Mistral AI), mis en forme par Qwen2.5-Coder 7B (Alibaba Cloud), puis collé au curseur. VoxFlow apprend ton vocabulaire à partir de tes corrections. Aucun audio ni texte ne quitte ton Mac.
+
+Configuration requise : Mac Apple Silicon, macOS 14 ou plus récent, et uv (brew install uv). Le premier lancement télécharge environ 7,5 Go de modèles.

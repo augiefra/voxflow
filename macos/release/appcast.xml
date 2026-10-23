@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>VoxFlow</title>
+    <language>fr</language>
+    <item>
+      <title>VoxFlow 0.1.0</title>
+      <pubDate>Fri, 23 Oct 2026 20:38:02 GMT</pubDate>
+      <sparkle:version>0.1.0</sparkle:version>
+      <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Première version publique de VoxFlow, la dictée vocale 100 % locale pour macOS.</p><p>Maintiens Fn pour dicter, ou tape deux fois sur Fn pour dicter mains libres. Le texte est transcrit par Voxtral Mini 4B Realtime (Mistral AI), mis en forme par Qwen2.5-Coder 7B (Alibaba Cloud), puis collé au curseur. VoxFlow apprend ton vocabulaire à partir de tes corrections. Aucun audio ni texte ne quitte ton Mac.</p><p>Configuration requise : Mac Apple Silicon, macOS 14 ou plus récent, et uv (brew install uv). Le premier lancement télécharge environ 7,5 Go de modèles.</p>]]></description>
+      <enclosure url="https://github.com/augiefra/voxflow/releases/download/v0.1.0/VoxFlow-0.1.0.dmg" type="application/octet-stream" sparkle:edSignature="W/kGCZQtud/TjIT8otqvH4wU/sjQeOO7xtOgv3WP/7et13LYdNp12J/S3OdglZXx0xaifn5w5YA4TgXMP5MXCA==" length="3647412"></enclosure>
+    </item>
+  </channel>
+</rss><!-- sparkle-signatures:
+edSignature: A5q7nGw6QVKhVES9U5iEA3wU9i6cd+8c/8dPKESvgFF/gLQqoVvS+qedHZBrxZwUFKWQYM8TTa07NjDLw6iHDQ==
+length: 1663
+-->

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>fr</string>
+	<key>CFBundleDisplayName</key>
+	<string>VoxFlow</string>
+	<key>CFBundleExecutable</key>
+	<string>VoxFlow</string>
+	<key>CFBundleIconFile</key>
+	<string>VoxFlow</string>
+	<key>CFBundleIconName</key>
+	<string>VoxFlow</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.ericcologni.voxflow</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>VoxFlow</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundleVersion</key>
+	<string>0.1.0</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>© 2026 Eric Cologni. Gratuit, licence MIT.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>VoxFlow écoute le micro uniquement pendant que tu dictes (touche Fn) ; l'audio est transcrit en local sur ce Mac et n'est jamais envoyé ailleurs.</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string></string>
+	<key>SUPublicEDKey</key>
+	<string>sOq2/j1zCkSitsooOSTHW5tddAq4qWMaRbYvA6OUrSo=</string>
+	<key>SURequireSignedFeed</key>
+	<true/>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
+</dict>
+</plist>

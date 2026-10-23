@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.pyc
+daemon/.venv/
+macos/.build/
+macos/build/
+macos/dist/
+*.dSYM/
+.swiftpm/
+.claude/
