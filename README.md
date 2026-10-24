@@ -37,8 +37,8 @@
 
 1. [Download the latest VoxFlow DMG](https://github.com/augiefra/voxflow/releases/latest) and drag VoxFlow to Applications.
 2. Open VoxFlow. A short welcome walks you through the rest, no Terminal needed:
-   - the engines start downloading right away: **Full** (about 7.4 GB, with AI formatting) or **Light** (about 3.1 GB, transcription only, for 8 GB Macs or a nearly full disk);
-   - allow **Microphone** and **Accessibility**;
+   - Voxtral, the speech engine both modes share (about 3.1 GB), starts downloading right away; then choose **Full** to add Qwen (about 4.3 GB more, AI formatting) or **Light** (transcription only, for 8 GB Macs or a nearly full disk);
+   - allow **Microphone** and **Accessibility**: VoxFlow restarts itself once Accessibility is on, so the key works right away, and the welcome picks up where it left off;
    - choose your dictation key: **Fn** (🌐), or right **⌘**, **⌥** or **⌃**. With Fn, set **System Settings › Keyboard › Press 🌐 key to** → **Do Nothing**; the welcome checks it for you;
    - try it in the welcome window.
 

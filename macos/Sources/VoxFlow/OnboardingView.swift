@@ -4,11 +4,15 @@ import Combine
 import SwiftUI
 import VoxFlowCore
 
-/// État de l'accueil : page, autorisations relues chaque seconde, touche choisie.
+/// État de l'accueil : page (mémorisée pour reprendre après un redémarrage),
+/// autorisations relues chaque seconde, touche choisie.
 final class OnboardingModel: ObservableObject {
     static let pageCount = 5
+    static let enginesPage = 1
 
-    @Published var page = 0
+    @Published var page: Int {
+        didSet { settings.onboardingPage = page }
+    }
     @Published var micGranted = AudioCapture.permissionGranted
     @Published var axGranted = AXHelper.isTrusted(prompt: false)
     @Published var globeOK = OnboardingModel.globeKeyFree
@@ -19,12 +23,15 @@ final class OnboardingModel: ObservableObject {
     @Published var testText = ""
 
     let engine: EngineController
+    private let settings: VoxFlowSettings
     var onKeyChange: (DictationKey) -> Void = { _ in }
     var onFinish: () -> Void = {}
     private var timer: Timer?
 
-    init(engine: EngineController, settings: VoxFlowSettings) {
+    init(engine: EngineController, settings: VoxFlowSettings, page: Int = 0) {
         self.engine = engine
+        self.settings = settings
+        self.page = min(max(page, 0), Self.pageCount - 1)
         key = settings.dictationKey
     }
 
@@ -89,6 +96,8 @@ final class OnboardingModel: ObservableObject {
     }
 
     func next() {
+        // Page Moteurs validée : Qwen ne se télécharge qu'à partir d'ici, et seulement en complet.
+        if page == Self.enginesPage { engine.confirmMode() }
         if page < Self.pageCount - 1 { page += 1 } else { onFinish() }
     }
 
@@ -534,7 +543,7 @@ struct EngineStatusView: View {
                     if failure.retryable {
                         Button(L10n.tr("engine.retry")) { engine.retry() }
                     }
-                    if engine.mode == .full, !["unsupported_cpu", "app_damaged", "port_busy"].contains(failure.code) {
+                    if engine.runningMode == .full, !["unsupported_cpu", "app_damaged", "port_busy"].contains(failure.code) {
                         Button(L10n.tr("engine.switchToLight")) { engine.setMode(.light) }
                     }
                     if failure.code == "disk_full" {

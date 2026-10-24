@@ -17,6 +17,7 @@
 "engine.preparing" = "Préparation de Python · %ld %%";
 "engine.ready.full" = "Moteurs prêts";
 "engine.ready.light" = "Moteurs prêts (mode léger)";
+"engine.ready.waitingChoice" = "Transcription prête · en attente de ton choix";
 "engine.retry" = "Réessayer";
 "engine.retrying" = "Nouvel essai automatique…";
 "engine.retrying.hub_unavailable" = "Hugging Face ne répond pas · nouvel essai automatique";
@@ -55,6 +56,7 @@
 "failure.unknown.title" = "Les moteurs ne démarrent pas";
 "failure.unsupported_cpu.message" = "VoxFlow fonctionne sur les Mac à puce Apple (M1 ou plus récent).";
 "failure.unsupported_cpu.title" = "Mac à puce Apple requis";
+"hud.accessibilityRestarted" = "Accessibilité activée : VoxFlow a redémarré";
 "hud.learned" = "Appris : %@";
 "hud.learned.item" = "%1$@ (au lieu de « %2$@ »)";
 "hud.micDenied" = "Micro refusé : Réglages Système › Confidentialité et sécurité › Microphone";
@@ -63,6 +65,7 @@
 "hud.permissionsMissing" = "Il manque une autorisation : voir le menu VoxFlow";
 "hud.processing" = "Mise en forme…";
 "hud.ready" = "VoxFlow est prêt : maintiens %@ pour dicter";
+"hud.restartNeeded" = "Quitte et rouvre VoxFlow pour activer ta touche";
 "hud.secureInput" = "Saisie sécurisée active (mot de passe, Terminal) : ta touche est ignorée ici";
 "key.externalKeyboard" = "Les claviers de MacBook n'ont pas de ⌃ à droite : il faut un clavier externe.";
 "key.fn" = "Fn (🌐)";
@@ -104,7 +107,7 @@
 "onboarding.back" = "Précédent";
 "onboarding.background" = "%@ · en arrière-plan";
 "onboarding.engines.footnote" = "Ce Mac : %1$@ de mémoire · %2$@ libres";
-"onboarding.engines.subtitle" = "Ils tournent sur ton Mac, sans connexion une fois téléchargés. Tu pourras changer plus tard dans les Réglages.";
+"onboarding.engines.subtitle" = "Ils tournent sur ton Mac, sans connexion une fois téléchargés. Voxtral, commun aux deux, se télécharge déjà ; Qwen ne se télécharge que si tu choisis Complet. Tu pourras changer plus tard dans les Réglages.";
 "onboarding.engines.title" = "Choisis tes moteurs";
 "onboarding.finish" = "Terminer";
 "onboarding.key.detected" = "Touche détectée : %@ ✓";
@@ -133,7 +136,7 @@
 "onboarding.windowTitle" = "Bienvenue dans VoxFlow";
 "permission.allow" = "Autoriser";
 "permission.ax.detail" = "Pour reconnaître ta touche, coller le texte là où tu écris, puis relire le champ pendant 25 s pour apprendre tes corrections.";
-"permission.ax.hint" = "Dans Réglages › Confidentialité et sécurité › Accessibilité, active VoxFlow. La coche apparaît ici toute seule.";
+"permission.ax.hint" = "Dans Réglages › Confidentialité et sécurité › Accessibilité, active VoxFlow. VoxFlow redémarre alors tout seul pour activer ta touche, et l'accueil reprend ici.";
 "permission.ax.title" = "Accessibilité";
 "permission.granted" = "Autorisé";
 "permission.mic.detail" = "Seulement pendant que tu dictes : touche tenue, ou mains libres jusqu'à ce que tu finisses.";

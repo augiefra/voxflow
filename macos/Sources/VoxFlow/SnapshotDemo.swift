@@ -17,7 +17,8 @@ final class SnapshotDemo: NSObject, NSApplicationDelegate {
         let defaults = UserDefaults(suiteName: "com.ericcologni.voxflow.snapshots")!
         defaults.removePersistentDomain(forName: "com.ericcologni.voxflow.snapshots")
         let settings = VoxFlowSettings(defaults: defaults)
-        let engine = EngineController(manager: DaemonManager(daemonDirectory: nil), client: InferenceClient(port: 1), mode: .full)
+        settings.engineModeConfirmed = true // états d'une installation dont le mode est choisi
+        let engine = EngineController(manager: DaemonManager(daemonDirectory: nil), client: InferenceClient(port: 1), settings: settings)
         let model = OnboardingModel(engine: engine, settings: settings)
         let downloading = { engine.simulate(.downloading, fraction: 0.42, done: 3_080_000_000, total: 7_444_716_257,
                                             speed: 118_000_000, eta: 37) }
@@ -35,6 +36,11 @@ final class SnapshotDemo: NSObject, NSApplicationDelegate {
         render(OnboardingView(model: model), size: NSSize(width: 620, height: 560), appearance: .aqua,
                to: folder.appendingPathComponent("accueil-4-commande-clair.png"))
         model.key = .fn
+        model.page = 2
+        (model.micGranted, model.axGranted) = (false, false)
+        render(OnboardingView(model: model), size: NSSize(width: 620, height: 560), appearance: .aqua,
+               to: folder.appendingPathComponent("accueil-3-a-autoriser-clair.png"))
+        (model.micGranted, model.axGranted) = (true, true)
 
         let states: [(String, () -> Void)] = [
             ("preparation", { engine.simulate(.preparing, fraction: 0.01) }),

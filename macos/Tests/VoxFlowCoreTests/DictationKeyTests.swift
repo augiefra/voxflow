@@ -66,10 +66,19 @@ final class DictationKeyTests: XCTestCase {
         XCTAssertNil(DictationKey.fn.isDown(keyCode: 54, flags: Flags.rightCmd, wasDown: false))
     }
 
+    /// Préférences d'essai dans le dossier temporaire (domaine désigné par son chemin) :
+    /// rien n'est laissé dans ~/Library/Preferences.
+    private func temporaryDefaults() -> (String, UserDefaults) {
+        let suite = FileManager.default.temporaryDirectory.appendingPathComponent("voxflow.tests.\(UUID().uuidString)").path
+        addTeardownBlock {
+            UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite)
+            try? FileManager.default.removeItem(atPath: suite + ".plist")
+        }
+        return (suite, UserDefaults(suiteName: suite)!)
+    }
+
     func testSettingsStore() {
-        let suite = "voxflow.tests.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suite)!
-        defer { defaults.removePersistentDomain(forName: suite) }
+        let (_, defaults) = temporaryDefaults()
         let settings = VoxFlowSettings(defaults: defaults)
         XCTAssertEqual(settings.dictationKey, .fn)
         for key in DictationKey.allCases {
@@ -81,6 +90,38 @@ final class DictationKeyTests: XCTestCase {
         XCTAssertFalse(settings.onboardingCompleted)
         settings.engineMode = .light
         XCTAssertEqual(settings.engineMode, .light)
+    }
+
+    /// Accueil : seul Voxtral se télécharge tant que le mode n'est pas validé.
+    func testRunningModeWaitsForConfirmation() {
+        let (_, defaults) = temporaryDefaults()
+        let settings = VoxFlowSettings(defaults: defaults)
+        settings.engineMode = .full
+        XCTAssertEqual(settings.runningMode, .light)
+        settings.engineModeConfirmed = true
+        XCTAssertEqual(settings.runningMode, .full)
+        settings.engineModeConfirmed = false
+        settings.onboardingCompleted = true // installations déjà accueillies
+        XCTAssertEqual(settings.runningMode, .full)
+        XCTAssertEqual(settings.onboardingPage, 0)
+        settings.onboardingPage = 2
+        XCTAssertEqual(VoxFlowSettings(defaults: defaults).onboardingPage, 2)
+    }
+
+    func testModeConfirmationMigration() {
+        let (suite, defaults) = temporaryDefaults()
+        let fresh = VoxFlowSettings(defaults: defaults)
+        fresh.migrateModeConfirmation(previousInstall: false)
+        // Après la relance de l'accessibilité, l'environnement Python existe : rien ne change.
+        fresh.migrateModeConfirmation(previousInstall: true)
+        XCTAssertFalse(fresh.engineModeConfirmed)
+
+        defaults.removePersistentDomain(forName: suite)
+        let upgraded = VoxFlowSettings(defaults: defaults)
+        upgraded.engineMode = .full
+        upgraded.migrateModeConfirmation(previousInstall: true)
+        XCTAssertTrue(upgraded.engineModeConfirmed)
+        XCTAssertEqual(upgraded.runningMode, .full)
     }
 
     func testRecommendedMode() {

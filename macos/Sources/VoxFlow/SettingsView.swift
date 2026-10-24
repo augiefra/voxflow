@@ -63,8 +63,8 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text(L10n.tr("settings.engines")).font(.system(size: 13, weight: .semibold))
                 HStack(spacing: 12) {
-                    ModeCard(mode: .full, selected: engine.mode == .full) { engine.confirmAndSetMode(.full) }
-                    ModeCard(mode: .light, selected: engine.mode == .light) { engine.confirmAndSetMode(.light) }
+                    ModeCard(mode: .full, selected: engine.mode == .full) { engine.confirmAndSetMode(.full, confirming: true) }
+                    ModeCard(mode: .light, selected: engine.mode == .light) { engine.confirmAndSetMode(.light, confirming: true) }
                 }
                 .frame(height: 168)
                 EngineStatusView(engine: engine, compact: true)

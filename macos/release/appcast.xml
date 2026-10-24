@@ -5,6 +5,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <title>VoxFlow</title>
     <language>fr</language>
     <item>
+      <title>VoxFlow 0.1.2</title>
+      <pubDate>Sat, 24 Oct 2026 18:57:20 GMT</pubDate>
+      <sparkle:version>0.1.2</sparkle:version>
+      <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Deux correctifs après les premiers essais. VoxFlow ne télécharge plus que Voxtral (3,1 Go) tant que tu n&#x27;as pas choisi ton mode : Qwen (4,3 Go) ne s&#x27;ajoute que si tu prends le mode complet. Et une fois l&#x27;Accessibilité autorisée, VoxFlow redémarre tout seul pour que la touche de dictée marche aussitôt ; l&#x27;accueil reprend là où il en était.</p><p>Two fixes from early testing. VoxFlow now only downloads Voxtral (3.1 GB) until you choose a mode: Qwen (4.3 GB) is added only if you pick Full. And once you allow Accessibility, VoxFlow restarts itself so the dictation key works right away; the welcome picks up where it left off.</p>]]></description>
+      <enclosure url="https://github.com/augiefra/voxflow/releases/download/v0.1.2/VoxFlow-0.1.2.dmg" type="application/octet-stream" sparkle:edSignature="3hGAVc2JzwbhGz2Q+h+P+8LX7Xi8sM+I5w9q/YbSq2A9J23TjXJi3WWvEyfY2KXVvGyL0l+CqndgmiIcA/q3Aw==" length="19312102"></enclosure>
+    </item>
+    <item>
       <title>VoxFlow 0.1.1</title>
       <pubDate>Sat, 24 Oct 2026 06:47:46 GMT</pubDate>
       <sparkle:version>0.1.1</sparkle:version>
@@ -24,6 +33,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 15Tx7ERIZCZUei0q+JaRvGc6iZrKeDfLrm8R0W5Tyfcsk8ZnEdkU4cwYq4/QnISdUwJxwnVPHNdt9gsrBWumCA==
-length: 3301
+edSignature: 5sugM92E0U2VNlwBAELsoSh+BJQQAmM3awcSkV0TcalOwzbP6WLddse5u75aCMQN+NtBMDAMwGUiZqz7qJhiDw==
+length: 4590
 -->

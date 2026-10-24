@@ -39,6 +39,7 @@ final class EngineController: ObservableObject {
 
     private let manager: DaemonManager
     private let client: InferenceClient
+    private let settings: VoxFlowSettings
     private var environmentFraction: Double = 0
     private var generation = 0
     private var pollTimer: Timer?
@@ -52,14 +53,20 @@ final class EngineController: ObservableObject {
 
     private static let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
 
-    init(manager: DaemonManager, client: InferenceClient, mode: EngineMode) {
+    init(manager: DaemonManager, client: InferenceClient, settings: VoxFlowSettings) {
         self.manager = manager
         self.client = client
-        self.mode = mode
+        self.settings = settings
+        mode = settings.engineMode
         manager.onExit = { [weak self] status in self?.daemonExited(status: status) }
     }
 
     var isReady: Bool { stage == .ready }
+
+    /// Mode du démon : `mode` est le choix affiché ; tant qu'il n'est pas validé dans
+    /// l'accueil, seul Voxtral (commun aux deux modes) se télécharge.
+    var runningMode: EngineMode { settings.runningMode }
+    var modeConfirmed: Bool { settings.onboardingCompleted || settings.engineModeConfirmed }
 
     var failure: EngineFailure? {
         if case let .failed(failure) = stage { return failure }
@@ -80,7 +87,8 @@ final class EngineController: ObservableObject {
         client.health { [weak self] health in
             guard let self, current == self.generation else { return }
             guard let health else { return self.prepareThenLaunch(generation: current) }
-            if health.pid != nil, health.mode == self.mode.rawValue, health.version == nil || health.version == Self.appVersion {
+            if health.pid != nil, health.mode == self.runningMode.rawValue,
+               health.version == nil || health.version == Self.appVersion {
                 AppLog.write("Démon déjà à l'écoute repris (pid \(health.pid ?? 0))")
                 self.adopted = true
                 self.missedPolls = 0
@@ -124,10 +132,28 @@ final class EngineController: ObservableObject {
     /// et un téléchargement interrompu reprend où il en était. L'installation de Python,
     /// qui ne dépend pas du mode, continue.
     func setMode(_ newMode: EngineMode) {
-        guard newMode != mode else { return }
+        apply(newMode, confirming: false)
+    }
+
+    /// Accueil, page Moteurs validée : le démon passe au mode choisi (Qwen se télécharge
+    /// si c'est le complet).
+    func confirmMode() {
+        apply(mode, confirming: true)
+    }
+
+    private func apply(_ newMode: EngineMode, confirming: Bool) {
+        let confirming = confirming && !modeConfirmed
+        guard newMode != mode || confirming else { return }
+        let before = runningMode
         mode = newMode
-        VoxFlowSettings.shared.engineMode = newMode
-        guard stage != .idle else { return }
+        settings.engineMode = newMode
+        if confirming { settings.engineModeConfirmed = true }
+        restartIfModeChanged(from: before)
+    }
+
+    private func restartIfModeChanged(from before: EngineMode) {
+        guard runningMode != before, stage != .idle else { return }
+        AppLog.write("Moteurs : passage en mode \(runningMode.rawValue)")
         generation += 1
         pollTimer?.invalidate()
         cancelAutoRetry()
@@ -144,10 +170,12 @@ final class EngineController: ObservableObject {
     }
 
     /// Le mode complet ajoute Qwen (4,3 Go) : depuis un mode léger qui marche, on prévient
-    /// que la dictée s'arrête le temps du téléchargement.
-    func confirmAndSetMode(_ newMode: EngineMode) {
-        guard newMode != mode else { return }
-        if newMode == .full, isReady {
+    /// que la dictée s'arrête le temps du téléchargement. `confirming` : un clic dans les
+    /// Réglages vaut validation du mode, même avant la fin de l'accueil.
+    func confirmAndSetMode(_ newMode: EngineMode, confirming: Bool = false) {
+        let confirming = confirming && !modeConfirmed
+        guard newMode != mode || confirming else { return }
+        if newMode == .full, runningMode == .light, isReady, modeConfirmed || confirming {
             let alert = NSAlert()
             alert.messageText = L10n.tr("mode.switchFull.title")
             alert.informativeText = L10n.tr("mode.switchFull.message",
@@ -156,7 +184,7 @@ final class EngineController: ObservableObject {
             alert.addButton(withTitle: L10n.tr("mode.switchFull.cancel"))
             guard alert.runModal() == .alertFirstButtonReturn else { return }
         }
-        setMode(newMode)
+        apply(newMode, confirming: confirming)
     }
 
     func stop() {
@@ -207,8 +235,8 @@ final class EngineController: ObservableObject {
     private func launch(generation current: Int) {
         do {
             answered = false
-            try manager.launch(light: mode == .light)
-            AppLog.write("Démon lancé (mode \(mode.rawValue))")
+            try manager.launch(light: runningMode == .light)
+            AppLog.write("Démon lancé (mode \(runningMode.rawValue))")
             set(.checking)
             recompute()
             startPolling()
@@ -311,7 +339,7 @@ final class EngineController: ObservableObject {
 
     private func apply(_ health: DaemonHealth) {
         bytesDone = health.bytesDone ?? 0
-        bytesTotal = health.bytesTotal ?? mode.downloadBytes
+        bytesTotal = health.bytesTotal ?? runningMode.downloadBytes
         speed = health.speedBps ?? 0
         eta = health.etaS
         switch health.status {
@@ -340,7 +368,7 @@ final class EngineController: ObservableObject {
 
     private func recompute() {
         let environment = Double(EnvironmentProgress.expectedBytes)
-        let total = Double(bytesTotal > 0 ? bytesTotal : mode.downloadBytes)
+        let total = Double(bytesTotal > 0 ? bytesTotal : runningMode.downloadBytes)
         var value = (environmentFraction * environment + Double(bytesDone)) / (environment + total)
         if stage == .loading { value = max(value, 0.99) }
         if stage == .ready { value = 1 }
@@ -367,7 +395,9 @@ final class EngineController: ObservableObject {
         case let .waitingRetry(code):
             return L10n.tr(Self.retryCodes.contains(code) ? "engine.retrying.\(code)" : "engine.retrying")
         case .loading: return L10n.tr("engine.loading")
-        case .ready: return mode == .full ? L10n.tr("engine.ready.full") : L10n.tr("engine.ready.light")
+        case .ready:
+            if runningMode != mode { return L10n.tr("engine.ready.waitingChoice") }
+            return mode == .full ? L10n.tr("engine.ready.full") : L10n.tr("engine.ready.light")
         case let .failed(failure): return Self.title(for: failure)
         }
     }

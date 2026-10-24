@@ -143,6 +143,32 @@ public final class VoxFlowSettings {
         get { defaults.bool(forKey: "onboardingCompleted") }
         set { defaults.set(newValue, forKey: "onboardingCompleted") }
     }
+
+    /// Mode validé dans l'accueil (page Moteurs). Avant, seul Voxtral se télécharge :
+    /// Qwen (4,3 Go) attend que l'utilisateur ait choisi le mode complet.
+    public var engineModeConfirmed: Bool {
+        get { defaults.bool(forKey: "engineModeConfirmed") }
+        set { defaults.set(newValue, forKey: "engineModeConfirmed") }
+    }
+
+    /// Mode dans lequel le démon tourne : léger tant que le choix n'est pas validé.
+    public var runningMode: EngineMode {
+        onboardingCompleted || engineModeConfirmed ? engineMode : .light
+    }
+
+    /// Mise à jour d'une 0.1.1 dont l'accueil n'a pas été terminé : son démon tournait déjà
+    /// dans `engineMode`, ce choix vaut validation. Regardé une seule fois, au premier lancement.
+    public func migrateModeConfirmation(previousInstall: Bool) {
+        guard !defaults.bool(forKey: "modeConfirmationMigrated") else { return }
+        defaults.set(true, forKey: "modeConfirmationMigrated")
+        if previousInstall, !onboardingCompleted { engineModeConfirmed = true }
+    }
+
+    /// Page de l'accueil en cours : il reprend là après un redémarrage (accessibilité).
+    public var onboardingPage: Int {
+        get { defaults.integer(forKey: "onboardingPage") }
+        set { defaults.set(newValue, forKey: "onboardingPage") }
+    }
 }
 
 /// Complet : Voxtral + Qwen (mise en forme par IA). Léger : Voxtral seul (`--no-llm`).

@@ -4,12 +4,17 @@ import VoxFlowCore
 /// Journal texte de l'app : ~/.voxflow/app.log (appuis Fn, apprentissages).
 enum AppLog {
     private static let queue = DispatchQueue(label: "voxflow.log")
-    private static let url = DaemonManager.dataDirectory.appendingPathComponent("app.log")
+    static let url = DaemonManager.dataDirectory.appendingPathComponent("app.log")
     private static let formatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
         return formatter
     }()
+
+    /// Attend les lignes en cours d'écriture (avant de quitter).
+    static func flush() {
+        queue.sync {}
+    }
 
     static func write(_ message: String) {
         let line = "\(formatter.string(from: Date())) \(message)\n"

@@ -17,6 +17,7 @@
 "engine.preparing" = "Setting up Python · %ld%%";
 "engine.ready.full" = "Engines ready";
 "engine.ready.light" = "Engines ready (light mode)";
+"engine.ready.waitingChoice" = "Transcription ready · waiting for your choice";
 "engine.retry" = "Try Again";
 "engine.retrying" = "Retrying automatically…";
 "engine.retrying.hub_unavailable" = "Hugging Face isn't responding · retrying automatically";
@@ -55,6 +56,7 @@
 "failure.unknown.title" = "The engines won't start";
 "failure.unsupported_cpu.message" = "VoxFlow runs on Macs with Apple silicon (M1 or later).";
 "failure.unsupported_cpu.title" = "Apple silicon Mac required";
+"hud.accessibilityRestarted" = "Accessibility on: VoxFlow restarted";
 "hud.learned" = "Learned: %@";
 "hud.learned.item" = "%1$@ (instead of “%2$@”)";
 "hud.micDenied" = "Microphone blocked: System Settings › Privacy & Security › Microphone";
@@ -63,6 +65,7 @@
 "hud.permissionsMissing" = "A permission is missing: see the VoxFlow menu";
 "hud.processing" = "Formatting…";
 "hud.ready" = "VoxFlow is ready: hold %@ to dictate";
+"hud.restartNeeded" = "Quit and reopen VoxFlow to turn on your key";
 "hud.secureInput" = "Secure input is on (password field, Terminal): your key is ignored here";
 "key.externalKeyboard" = "MacBook keyboards have no right ⌃: you need an external keyboard.";
 "key.fn" = "Fn (🌐)";
@@ -104,7 +107,7 @@
 "onboarding.back" = "Back";
 "onboarding.background" = "%@ · in the background";
 "onboarding.engines.footnote" = "This Mac: %1$@ of memory · %2$@ free";
-"onboarding.engines.subtitle" = "They run on your Mac and work offline once downloaded. You can switch later in Settings.";
+"onboarding.engines.subtitle" = "They run on your Mac and work offline once downloaded. Voxtral, used by both, is already downloading; Qwen only downloads if you choose Full. You can switch later in Settings.";
 "onboarding.engines.title" = "Choose your engines";
 "onboarding.finish" = "Done";
 "onboarding.key.detected" = "Key detected: %@ ✓";
@@ -133,7 +136,7 @@
 "onboarding.windowTitle" = "Welcome to VoxFlow";
 "permission.allow" = "Allow";
 "permission.ax.detail" = "To notice your key, paste text where you're typing, then read the field for 25 seconds to learn your corrections.";
-"permission.ax.hint" = "In Settings › Privacy & Security › Accessibility, turn VoxFlow on. The check mark shows up here by itself.";
+"permission.ax.hint" = "In Settings › Privacy & Security › Accessibility, turn VoxFlow on. VoxFlow then restarts by itself to turn on your key, and the welcome picks up here.";
 "permission.ax.title" = "Accessibility";
 "permission.granted" = "Allowed";
 "permission.mic.detail" = "Only while you dictate: key held, or hands-free until you finish.";

@@ -1,0 +1,3 @@
+Deux correctifs après les premiers essais. VoxFlow ne télécharge plus que Voxtral (3,1 Go) tant que tu n'as pas choisi ton mode : Qwen (4,3 Go) ne s'ajoute que si tu prends le mode complet. Et une fois l'Accessibilité autorisée, VoxFlow redémarre tout seul pour que la touche de dictée marche aussitôt ; l'accueil reprend là où il en était.
+
+Two fixes from early testing. VoxFlow now only downloads Voxtral (3.1 GB) until you choose a mode: Qwen (4.3 GB) is added only if you pick Full. And once you allow Accessibility, VoxFlow restarts itself so the dictation key works right away; the welcome picks up where it left off.

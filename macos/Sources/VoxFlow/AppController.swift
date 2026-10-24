@@ -17,7 +17,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private lazy var client = InferenceClient(port: port)
     private lazy var engine = EngineController(
         manager: DaemonManager(daemonDirectory: Self.daemonDirectory(), port: port),
-        client: client, mode: settings.engineMode)
+        client: client, settings: settings)
     private var onboarding: OnboardingWindowController?
     private var settingsWindow: SettingsWindowController?
     private var settingsModel: SettingsModel?
@@ -59,6 +59,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         muter.restoreAfterCrashIfNeeded()
         let migrated = VoxFlowPaths.migrateLegacyDataIfNeeded()
         if !migrated.isEmpty { AppLog.write("Données reprises de ~/.wispr_clone : \(migrated.joined(separator: ", "))") }
+        settings.migrateModeConfirmation(previousInstall: FileManager.default.fileExists(atPath: DaemonManager.venvDirectory.path))
         do {
             store = try LexiconStore()
         } catch {
@@ -103,20 +104,78 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         audio.stop()
         muter.restore()
         engine.stop()
+        AppLog.flush()
     }
 
-    /// Le CGEventTap exige la permission Accessibilité ; on la demande puis on
-    /// réessaie toutes les 2 s jusqu'à ce qu'elle soit accordée.
+    /// Le CGEventTap exige la permission Accessibilité. Accordée au lancement : le tap
+    /// démarre. Accordée pendant que VoxFlow tourne : macOS ne livre pas les touches au
+    /// tap avant un redémarrage (constaté sur macOS 27 : Fn muette jusqu'à la relance,
+    /// même avec la coche verte), donc VoxFlow se relance tout seul, accueil compris.
     private func startEventTapWhenTrusted(prompt: Bool) {
-        if AXHelper.isTrusted(prompt: prompt), eventTap.start() {
-            rebuildMenu()
-            return
+        let trustedAtLaunch = AXHelper.isTrusted(prompt: prompt)
+        if trustedAtLaunch {
+            if startEventTap() { return }
+            AppLog.write("Tap clavier impossible malgré l'accessibilité : nouvel essai chaque seconde")
         }
         permissionTimer?.invalidate()
-        permissionTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] timer in
-            guard let self, AXHelper.isTrusted(prompt: false), self.eventTap.start() else { return }
+        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] timer in
+            guard let self, AXHelper.isTrusted(prompt: false) else { return }
+            if trustedAtLaunch {
+                if self.startEventTap() { timer.invalidate() }
+                return
+            }
             timer.invalidate()
-            self.rebuildMenu()
+            AppLog.write("Accessibilité accordée : redémarrage pour activer la touche")
+            self.relaunch()
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        permissionTimer = timer
+    }
+
+    private func startEventTap() -> Bool {
+        guard eventTap.start() else { return false }
+        rebuildMenu()
+        if CommandLine.arguments.contains(Self.relaunchedArgument) {
+            hud.show(.notice(L10n.tr("hud.accessibilityRestarted")))
+        }
+        return true
+    }
+
+    static let relaunchedArgument = "--relaunched-for-accessibility"
+
+    /// Nouvelle instance une fois celle-ci terminée (son démon arrêté, port libéré), avec
+    /// cinq essais de `open` ; un échec final va dans app.log. Les variables VOXFLOW_* et
+    /// HF_* et les arguments de lancement suivent, pour les essais isolés.
+    private func relaunch() {
+        guard Bundle.main.bundleURL.pathExtension == "app" else {
+            AppLog.write("Redémarrage impossible hors d'un bundle .app")
+            hud.show(.notice(L10n.tr("hud.restartNeeded")))
+            return
+        }
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let env = ProcessInfo.processInfo.environment
+            .filter { $0.key.hasPrefix("VOXFLOW_") || $0.key.hasPrefix("HF_") }
+            .flatMap { ["--env", "\($0.key)=\($0.value)"] }
+        let arguments = CommandLine.arguments.dropFirst().filter { $0 != Self.relaunchedArgument } + [Self.relaunchedArgument]
+        let script = """
+            log=$1; shift
+            while /bin/kill -0 \(pid) 2>/dev/null; do /bin/sleep 0.2; done
+            /bin/sleep 0.5
+            for attempt in 1 2 3 4 5; do
+              error=$(/usr/bin/open "$@" 2>&1) && exit 0
+              /bin/sleep 1
+            done
+            echo "$(/bin/date '+%Y-%m-%d %H:%M:%S.000') Redémarrage impossible : $error" >> "$log"
+            """
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/sh")
+        process.arguments = ["-c", script, "sh", AppLog.url.path] + env + [Bundle.main.bundlePath, "--args"] + arguments
+        do {
+            try process.run()
+            NSApp.terminate(nil)
+        } catch {
+            AppLog.write("Redémarrage impossible : \(error.localizedDescription)")
+            hud.show(.notice(L10n.tr("hud.restartNeeded")))
         }
     }
 
@@ -148,12 +207,15 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             onboarding.present()
             return
         }
-        let model = OnboardingModel(engine: engine, settings: settings)
+        // Premier accueil : il reprend à la page quittée (redémarrage pour l'accessibilité).
+        let model = OnboardingModel(engine: engine, settings: settings,
+                                    page: settings.onboardingCompleted ? 0 : settings.onboardingPage)
         model.onKeyChange = { [weak self] key in self?.changeKey(to: key) }
         let controller = OnboardingWindowController(model: model)
         // Seul « Terminer » clôt l'accueil : fermé avant, il revient au prochain lancement.
         model.onFinish = { [weak self, weak controller] in
             self?.settings.onboardingCompleted = true
+            self?.settings.onboardingPage = 0
             controller?.close()
         }
         controller.onClose = { [weak self] in

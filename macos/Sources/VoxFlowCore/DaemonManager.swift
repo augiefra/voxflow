@@ -145,7 +145,7 @@ public final class DaemonManager {
     private var setupWaiters: [(progress: (Double) -> Void, completion: (Result<Void, EngineFailure>) -> Void)] = []
 
     public static var dataDirectory: URL { VoxFlowPaths.dataDirectory }
-    static var venvDirectory: URL { dataDirectory.appendingPathComponent("venv", isDirectory: true) }
+    public static var venvDirectory: URL { dataDirectory.appendingPathComponent("venv", isDirectory: true) }
     static var readyMarker: URL { venvDirectory.appendingPathComponent(".voxflow-ready") }
     public static var logURL: URL { dataDirectory.appendingPathComponent("daemon.log") }
 
