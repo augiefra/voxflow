@@ -1,0 +1,5 @@
+Plus besoin du Terminal : VoxFlow installe lui-même ce qu'il lui faut. Un court accueil lance le téléchargement des moteurs, demande les autorisations, te fait choisir ta touche et te propose un essai.
+
+Nouveau : la touche de dictée au choix (Fn, ou ⌘, ⌥, ⌃ de droite), un mode léger (3,1 Go, sans la mise en forme par IA) pour les Mac de 8 Go, l'interface en anglais, et un téléchargement qui reprend là où il s'est arrêté après une coupure. Les modèles déjà téléchargés par la 0.1.0 sont réutilisés. Le journal des moteurs ne contient plus le texte que tu dictes.
+
+No more Terminal: VoxFlow now sets itself up. A short welcome starts the engine download, asks for permissions, lets you pick your key and try it. New: choose your dictation key (Fn, or right ⌘, ⌥, ⌃), a Light mode (3.1 GB, no AI formatting) for 8 GB Macs, an English interface, and downloads that resume after a dropped connection. The engine log no longer contains what you dictate.

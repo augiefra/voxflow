@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>fr</string>
+	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>VoxFlow</string>
 	<key>CFBundleExecutable</key>
@@ -16,6 +16,11 @@
 	<string>com.ericcologni.voxflow</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>fr</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>VoxFlow</string>
 	<key>CFBundlePackageType</key>
@@ -31,9 +36,9 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>© 2026 Eric Cologni. Gratuit, licence MIT.</string>
+	<string>© 2026 Eric Cologni. Free, MIT license.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>VoxFlow écoute le micro uniquement pendant que tu dictes (touche Fn) ; l'audio est transcrit en local sur ce Mac et n'est jamais envoyé ailleurs.</string>
+	<string>VoxFlow listens only while you dictate. Audio is transcribed on this Mac and never sent anywhere.</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>

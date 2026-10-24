@@ -8,7 +8,8 @@ Garde deux modèles chargés en mémoire unifiée :
            + application du dictionnaire appris (~/.voxflow/lexicon.db).
 
 Protocole (WebSocket, 127.0.0.1 uniquement, jeton obligatoire) :
-  GET  /health                       -> JSON {"status": "loading"|"ready"|"error", ...}
+  GET  /health                       -> JSON {"status": "loading"|"ready"|"error", "pid", "mode",
+                                        "version", progression...}  (Host local, sans Origin)
   WS   /v1/dictation  (Authorization: Bearer <~/.voxflow/token>)
      client -> {"type":"start","bundle_id":"com.apple.TextEdit","sample_rate":16000}
      client -> trames binaires : PCM Float32 little-endian, 16 kHz, mono
@@ -47,9 +48,17 @@ from websockets.asyncio.server import ServerConnection, serve
 from websockets.exceptions import ConnectionClosed
 from websockets.http11 import Request
 
+# Dans l'app, ce dossier est dans le bundle signé : un __pycache__ y casserait le sceau de
+# signature. Seul model_store est concerné ; les paquets du venv gardent leur cache.
+_write_bytecode = sys.dont_write_bytecode
+sys.dont_write_bytecode = True
+import model_store  # noqa: E402
+
+sys.dont_write_bytecode = _write_bytecode
+
 log = logging.getLogger("voxflow")
 
-DATA_DIR = Path.home() / ".voxflow"
+DATA_DIR = Path(os.environ.get("VOXFLOW_DATA_DIR") or Path.home() / ".voxflow")
 DEFAULT_DB = DATA_DIR / "lexicon.db"
 TOKEN_FILE = DATA_DIR / "token"
 SAMPLE_RATE = 16_000
@@ -487,24 +496,36 @@ class MLXEngines:
         self.prefix_tokens: list[int] = []
         self.prefix_cache = None
 
-    def load(self) -> None:
+    def all_local(self, asr_path, llm_path) -> bool:
+        """Tous les modèles à charger viennent du magasin (aucun modèle personnalisé)."""
+        return asr_path is not None and (not self.use_llm or llm_path is not None)
+
+    def load(self, asr_path: str | None = None, llm_path: str | None = None, progress=None) -> None:
+        if self.all_local(asr_path, llm_path):
+            # Modèles déjà sur disque (model_store) : plus aucun appel réseau à partir d'ici.
+            # Un modèle personnalisé, lui, est téléchargé par mlx depuis le Hub.
+            os.environ["HF_HUB_OFFLINE"] = "1"   # avant le 1er import de huggingface_hub
         import mlx.core as mx
         from mlx_audio.stt.utils import load as load_stt
 
+        note = progress.update if progress else (lambda **_: None)
         mx.set_cache_limit(MLX_CACHE_LIMIT_BYTES)
         t0 = time.perf_counter()
-        log.info("Chargement ASR %s", self.asr_model_id)
-        self.asr = load_stt(self.asr_model_id)
+        note(phase="loading", model="asr", file=None)
+        log.info("Chargement ASR %s", asr_path or self.asr_model_id)
+        self.asr = load_stt(str(asr_path or self.asr_model_id))
         log.info("ASR prêt en %.1fs", time.perf_counter() - t0)
         if self.use_llm:
             from mlx_lm import load as load_lm
             from mlx_lm.sample_utils import make_sampler
 
             t1 = time.perf_counter()
-            log.info("Chargement LLM %s", self.llm_model_id)
-            self.llm, self.tokenizer = load_lm(self.llm_model_id)
+            note(phase="loading", model="llm")
+            log.info("Chargement LLM %s", llm_path or self.llm_model_id)
+            self.llm, self.tokenizer = load_lm(str(llm_path or self.llm_model_id))
             self.sampler = make_sampler(temp=0.0)
             log.info("LLM prêt en %.1fs", time.perf_counter() - t1)
+        note(phase="warmup", model=None)
         self.warmup()
 
     def warmup(self) -> None:
@@ -639,16 +660,50 @@ class DictationService:
         self.status = "loading"
         self.error = ""
         self.busy = asyncio.Lock()
+        light = not getattr(engines, "use_llm", True)
+        self.progress = model_store.Progress(["asr"] if light else ["asr", "llm"])
+
+    def prepare(self) -> dict[str, Path | None]:
+        """Thread de fond (pas le thread MLX) : contrôles machine puis téléchargement avec reprise.
+        Un modèle choisi par --asr-model/--llm-model reste chargé par mlx depuis le Hub ;
+        l'autre passe quand même par le magasin."""
+        light = not self.engines.use_llm
+        model_store.check_machine(light=light)
+        ids = {"asr": (self.engines.asr_model_id, model_store.ASR.repo)}
+        if not light:
+            ids["llm"] = (self.engines.llm_model_id, model_store.LLM.repo)
+        stored = [k for k, (chosen, default) in ids.items() if chosen == default]
+        paths: dict[str, Path | None] = {"asr": None, "llm": None}
+        for key in ids.keys() - set(stored):
+            log.info("Modèle personnalisé %s : téléchargement par mlx, sans progression", ids[key][0])
+            self.progress.set_model(key, state="custom", done=0, total=0)
+        if stored:
+            paths.update(model_store.ensure_models(stored, self.progress)[1])
+        return paths
 
     async def load(self) -> None:
+        paths: dict[str, Path | None] = {}
         try:
-            await self.mlx.run(self.engines.load)
+            if isinstance(self.engines, MLXEngines):
+                paths = await asyncio.to_thread(self.prepare)
+                await self.mlx.run(self.engines.load, paths["asr"], paths.get("llm"), self.progress)
+            else:
+                await self.mlx.run(self.engines.load)
+            self.progress.update(phase="ready", model=None, file=None)
             self.status = "ready"
             log.info("Démon prêt")
         except Exception as exc:  # noqa: BLE001 — remonté dans /health
+            err = model_store.classify(exc)
+            failed = self.progress.snapshot()
+            self.progress.update(phase="error", error=err)
             self.status = "error"
-            self.error = f"{type(exc).__name__}: {exc}"
-            log.exception("Échec du chargement des modèles")
+            self.error = err.message
+            log.exception("Échec du chargement des modèles (%s)", err.code)
+            # Modèle repris du cache Hugging Face (0.1.0) illisible : téléchargé au prochain essai.
+            key = failed["model"]
+            if failed["phase"] == "loading" and err.code != "low_memory" and model_store.is_legacy(paths.get(key)):
+                log.warning("Cache Hugging Face inutilisable pour %s : téléchargement au prochain essai", key)
+                model_store.refuse_legacy(key)
 
     async def clean(self, raw_text: str, bundle_id: str) -> tuple[str, list[str], dict, str]:
         """Renvoie (texte, termes du lexique, durées en ms, raison du passage par le LLM)."""
@@ -679,7 +734,8 @@ class DictationService:
         timings["llm_ms"] = round((time.perf_counter() - t1) * 1000, 1)
         cleaned = parse_llm_output(output, pre)
         if cleaned is None:
-            log.warning("Sortie LLM rejetée, nettoyage de secours : %r", output[:200])
+            log.warning("Sortie LLM rejetée (%d caractères), nettoyage de secours", len(output))
+            log.debug("Sortie LLM rejetée : %r", output[:200])
             cleaned = fallback_clean(pre)
             timings["fallback"] = 1
         # Filet de sécurité : les règles sans ambiguïté s'appliquent aussi après le LLM.
@@ -766,7 +822,10 @@ class DictationConnection:
             release_ms=release_ms,
             total_after_stop_ms=round((time.perf_counter() - t_stop) * 1000, 1),
         )
-        log.info("Dictée %.1fs : %r -> %r (LLM : %s, %s)", self.samples / SAMPLE_RATE, raw, text, reason, timings)
+        # Le journal peut finir dans un ticket public : jamais le texte dicté, sauf VOXFLOW_DEBUG=1.
+        log.info("Dictée %.1fs : %d -> %d caractères (LLM : %s, %s)", self.samples / SAMPLE_RATE,
+                 len(raw), len(text), reason, timings)
+        log.debug("Dictée : %r -> %r", raw, text)
         await self.send({"type": "final", "raw": raw, "text": text, "lexicon_terms": terms,
                          "timings": timings, "llm": reason})
 
@@ -819,18 +878,25 @@ def load_or_create_token(path: Path) -> str:
     return token
 
 
-def make_process_request(service: DictationService, token: str):
+def make_process_request(service: DictationService, token: str, port: int):
+    hosts = {f"127.0.0.1:{port}", f"localhost:{port}", f"[::1]:{port}"}
+    mode = "full" if getattr(service.engines, "use_llm", True) else "light"
+
     def process_request(connection: ServerConnection, request: Request):
         path = request.path.split("?", 1)[0]
+        # Host inattendu : DNS rebinding depuis une page web. Un navigateur envoie toujours
+        # Origin : on refuse aussi, pour qu'aucune page web ne lise ni ne pilote le démon.
+        if request.headers.get("Host", "").lower() not in hosts:
+            return connection.respond(http.HTTPStatus.MISDIRECTED_REQUEST, "hôte refusé\n")
+        if request.headers.get("Origin"):
+            return connection.respond(http.HTTPStatus.FORBIDDEN, "origin refusée\n")
         if path == "/health":
-            body = json.dumps({"status": service.status, "error": service.error})
+            body = json.dumps({**service.progress.snapshot(), "status": service.status, "error": service.error,
+                               "pid": os.getpid(), "mode": mode,
+                               "version": os.environ.get("VOXFLOW_APP_VERSION") or None})
             response = connection.respond(http.HTTPStatus.OK, body + "\n")
             response.headers["Content-Type"] = "application/json"
             return response
-        # Un navigateur envoie toujours Origin : on refuse, pour qu'aucune page web
-        # ne puisse piloter le démon local.
-        if request.headers.get("Origin"):
-            return connection.respond(http.HTTPStatus.FORBIDDEN, "origin refusée\n")
         if path != "/v1/dictation":
             return connection.respond(http.HTTPStatus.NOT_FOUND, "introuvable\n")
         if request.headers.get("Authorization", "") != f"Bearer {token}":
@@ -868,18 +934,36 @@ async def run_server(args: argparse.Namespace) -> None:
         finally:
             await conn.reset()
 
-    loader = asyncio.create_task(service.load())
-    async with serve(
+    server = serve(
         handler,
         args.host,
         args.port,
-        process_request=make_process_request(service, token),
+        process_request=make_process_request(service, token, args.port),
         max_size=4 * 1024 * 1024,
         compression=None,
-    ) as server:
+    )
+    try:
+        await server
+    except OSError as exc:
+        # Port pris : on sort tout de suite, avant d'avoir lancé le moindre téléchargement.
+        log.error("Écoute impossible sur %s:%d : %s", args.host, args.port, exc)
+        os._exit(1)
+    async with server:
         log.info("Écoute sur ws://%s:%d/v1/dictation", args.host, args.port)
+        loader = asyncio.create_task(service.load())
+        if args.parent_pid:
+            asyncio.create_task(exit_with_parent(args.parent_pid))
         await loader
         await server.serve_forever()
+
+
+async def exit_with_parent(parent_pid: int) -> None:
+    """L'app tuée sans pouvoir arrêter son démon (plantage, kill) : il ne reste pas orphelin
+    à occuper le port et la mémoire. Sortie immédiate, même en plein téléchargement."""
+    while os.getppid() == parent_pid:
+        await asyncio.sleep(2)
+    log.info("App VoxFlow disparue (pid %d) : arrêt du démon", parent_pid)
+    os._exit(0)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -893,6 +977,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--token-file", default=str(TOKEN_FILE))
     parser.add_argument("--no-llm", action="store_true", help="transcription seule, sans nettoyage LLM")
     parser.add_argument("--mock", action="store_true", help="moteurs factices (tests sans modèles)")
+    parser.add_argument("--parent-pid", type=int, default=0, help="s'arrêter quand ce processus disparaît")
     args = parser.parse_args(argv)
     if args.delay_ms % 80 or not (80 <= args.delay_ms <= 1200 or args.delay_ms == 2400):
         parser.error("--delay-ms doit être un multiple de 80 entre 80 et 1200, ou 2400")
@@ -905,6 +990,11 @@ def main() -> None:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", stream=sys.stderr
     )
+    # Texte dicté au journal seulement sur demande (débogage local).
+    if os.environ.get("VOXFLOW_DEBUG") == "1":
+        log.setLevel(logging.DEBUG)
+    # Une ligne par appel à /health (2 par seconde pendant le téléchargement) : inutile au journal.
+    logging.getLogger("websockets").setLevel(logging.WARNING)
     try:
         asyncio.run(run_server(parse_args()))
     except KeyboardInterrupt:

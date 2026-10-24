@@ -20,10 +20,10 @@ public enum InferenceError: Error, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .missingToken: return "Démon jamais lancé (jeton absent)"
-        case let .server(message): return "Démon : \(message)"
-        case .timeout: return "Démon trop lent (délai dépassé)"
-        case let .disconnected(message): return "Démon injoignable : \(message)"
+        case .missingToken: return L10n.tr("error.notReady")
+        case let .server(message): return L10n.tr("error.engine", message)
+        case .timeout: return L10n.tr("error.timeout")
+        case let .disconnected(message): return L10n.tr("error.unreachable", message)
         }
     }
 }
@@ -53,19 +53,14 @@ public final class InferenceClient {
         self.tokenFile = tokenFile
     }
 
-    /// Statut du démon via GET /health : "ready", "loading", "error" ou nil (arrêté).
-    public func health(_ completion: @escaping (String?, String?) -> Void) {
+    /// État du démon via GET /health, ou nil s'il ne répond pas (thread principal).
+    public func health(_ completion: @escaping (DaemonHealth?) -> Void) {
         let url = URL(string: "http://127.0.0.1:\(port)/health")!
         var request = URLRequest(url: url)
         request.timeoutInterval = 1.5
         session.dataTask(with: request) { data, _, _ in
-            var status: String?
-            var error: String?
-            if let data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                status = json["status"] as? String
-                error = (json["error"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-            }
-            DispatchQueue.main.async { completion(status, error) }
+            let health = data.flatMap { try? JSONDecoder().decode(DaemonHealth.self, from: $0) }
+            DispatchQueue.main.async { completion(health) }
         }.resume()
     }
 
@@ -108,7 +103,7 @@ public final class InferenceClient {
                 return
             }
             guard let task else {
-                deliver(.failure(InferenceError.disconnected("connexion absente")))
+                deliver(.failure(InferenceError.missingToken))
                 return
             }
             pendingFinal = deliver
@@ -176,7 +171,7 @@ public final class InferenceClient {
             pendingFinal?(result.mapError { $0 as Error })
             pendingFinal = nil
         case "error":
-            let message = json["message"] as? String ?? "erreur inconnue"
+            let message = json["message"] as? String ?? "?"
             if pendingFinal != nil { fail(.server(message)) } else { sessionError = message }
         default:
             break // "ready", "cancelled"
@@ -201,74 +196,5 @@ public final class InferenceClient {
         socket.send(.string(text)) { [weak self] error in
             if let error { self?.fail(.disconnected(error.localizedDescription)) }
         }
-    }
-}
-
-/// Lance le démon Python (via uv) s'il ne répond pas, et l'arrête en quittant.
-public final class DaemonManager {
-    public let daemonDirectory: URL?
-    public let port: Int
-    private var process: Process?
-
-    public static var dataDirectory: URL {
-        VoxFlowPaths.dataDirectory
-    }
-
-    public init(daemonDirectory: URL?, port: Int = 8765) {
-        self.daemonDirectory = daemonDirectory
-        self.port = port
-    }
-
-    public var isManagingProcess: Bool { process?.isRunning == true }
-
-    public static func findUV() -> URL? {
-        let home = FileManager.default.homeDirectoryForCurrentUser.path
-        let candidates = ["\(home)/.local/bin/uv", "/opt/homebrew/bin/uv", "/usr/local/bin/uv", "\(home)/.cargo/bin/uv"]
-        return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }.map(URL.init(fileURLWithPath:))
-    }
-
-    /// Démarre le démon. Le premier lancement installe l'environnement Python et
-    /// télécharge les modèles (~7 Go) : suivre ~/.voxflow/daemon.log.
-    public func launch() throws {
-        guard !isManagingProcess else { return }
-        guard let daemonDirectory,
-              FileManager.default.fileExists(atPath: daemonDirectory.appendingPathComponent("inference_daemon.py").path)
-        else { throw InferenceError.disconnected("dossier du démon introuvable") }
-        guard let uv = Self.findUV() else { throw InferenceError.disconnected("uv introuvable (brew install uv)") }
-
-        try FileManager.default.createDirectory(at: Self.dataDirectory, withIntermediateDirectories: true)
-        let logURL = Self.dataDirectory.appendingPathComponent("daemon.log")
-        if !FileManager.default.fileExists(atPath: logURL.path) {
-            FileManager.default.createFile(atPath: logURL.path, contents: nil)
-        }
-        let log = try FileHandle(forWritingTo: logURL)
-        log.seekToEndOfFile()
-
-        let process = Process()
-        process.executableURL = uv
-        process.arguments = [
-            "run", "--frozen", "--python", "3.12", "--project", daemonDirectory.path,
-            "python", daemonDirectory.appendingPathComponent("inference_daemon.py").path, "--port", String(port),
-        ]
-        var environment = ProcessInfo.processInfo.environment
-        // Environnement Python hors du bundle signé de l'app.
-        environment["UV_PROJECT_ENVIRONMENT"] = Self.dataDirectory.appendingPathComponent("venv").path
-        environment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:" + (environment["PATH"] ?? "")
-        environment["PYTHONUNBUFFERED"] = "1"
-        process.environment = environment
-        process.standardOutput = log
-        process.standardError = log
-        process.currentDirectoryURL = Self.dataDirectory
-        // Sans cela, le démon d'une app de barre de menu hérite d'une priorité
-        // d'arrière-plan (App Nap) qui bride le GPU.
-        process.qualityOfService = .userInitiated
-        try process.run()
-        self.process = process
-    }
-
-    public func stop() {
-        guard let process, process.isRunning else { return }
-        process.terminate()
-        self.process = nil
     }
 }

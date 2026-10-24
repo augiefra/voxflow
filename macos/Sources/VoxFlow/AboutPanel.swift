@@ -1,4 +1,5 @@
 import AppKit
+import VoxFlowCore
 
 /// Fenêtre « À propos » : version, copyright (Info.plist) et crédits des moteurs.
 enum AboutPanel {
@@ -6,16 +7,7 @@ enum AboutPanel {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
         let credits = NSAttributedString(
-            string: """
-            Dictée vocale 100 % locale, sur ce Mac.
-
-            Voxtral Mini 4B Realtime, Mistral AI
-            Qwen2.5-Coder 7B Instruct, Alibaba Cloud
-            Licence Apache 2.0, exécutés par MLX
-            Mises à jour : Sparkle
-
-            Détail : menu « Licences tierces… »
-            """,
+            string: L10n.tr("about.credits"),
             attributes: [.font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
                          .foregroundColor: NSColor.labelColor, .paragraphStyle: paragraph]
         )

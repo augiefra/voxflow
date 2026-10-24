@@ -1,0 +1,4 @@
+/* Textes de VoxFlow. Garder les mêmes clés et les mêmes %@ / %ld dans en.lproj et fr.lproj (test LocalizationTests). */
+
+"NSHumanReadableCopyright" = "© 2026 Eric Cologni. Gratuit, licence MIT.";
+"NSMicrophoneUsageDescription" = "VoxFlow écoute le micro uniquement pendant que tu dictes ; l'audio est transcrit sur ce Mac et n'est jamais envoyé ailleurs.";

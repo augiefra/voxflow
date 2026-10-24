@@ -49,7 +49,7 @@ echo "Identité : $IDENTITY"
 step "Crédits (licences des versions exactes de uv.lock)"
 uv sync --frozen --project "$DAEMON" --python 3.12 --quiet
 python3 "$ROOT/scripts/make_notices.py" "$DAEMON/.venv/lib/python3.12/site-packages" \
-  "$SPARKLE_BIN/../LICENSE" "$ROOT/Resources/THIRD_PARTY_NOTICES.txt"
+  "$SPARKLE_BIN/../LICENSE" "$("$ROOT/scripts/fetch_uv.sh")" "$ROOT/Resources/THIRD_PARTY_NOTICES.txt"
 
 step "Construction et signature Developer ID"
 "$ROOT/scripts/build_app.sh" --developer-id --version "$VERSION"

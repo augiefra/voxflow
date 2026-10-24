@@ -568,7 +568,7 @@ public final class CorrectionWatcher {
             // En AX, un clic dans le champ pour corriger est normal ; en fallback, on
             // ne sait plus où est le curseur : on garde le dernier état fiable.
             if case .shadow = mode { end(.mouseClick) }
-        case .flagsChanged:
+        case .flagsChanged, .scroll:
             break
         }
     }

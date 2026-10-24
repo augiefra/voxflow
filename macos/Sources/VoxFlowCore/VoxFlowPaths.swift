@@ -1,10 +1,14 @@
 import Foundation
 
 /// Emplacement unique des données de VoxFlow : ~/.voxflow (lexique, jeton, journaux,
-/// environnement Python du démon).
+/// Python, environnement du démon, modèles). VOXFLOW_DATA_DIR le remplace pour les essais
+/// « première installation » sans toucher aux vraies données.
 public enum VoxFlowPaths {
     public static var dataDirectory: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".voxflow", isDirectory: true)
+        if let override = ProcessInfo.processInfo.environment["VOXFLOW_DATA_DIR"], !override.isEmpty {
+            return URL(fileURLWithPath: override, isDirectory: true)
+        }
+        return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".voxflow", isDirectory: true)
     }
 
     /// Dossier des premières versions de développement.

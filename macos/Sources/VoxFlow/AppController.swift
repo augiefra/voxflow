@@ -1,18 +1,26 @@
 import AppKit
+import Carbon
 import Sparkle
 import VoxFlowCore
 
-/// Chef d'orchestre : Fn -> micro -> démon (Voxtral + Qwen) -> collage ->
+/// Chef d'orchestre : touche de dictée -> micro -> démon (Voxtral + Qwen) -> collage ->
 /// surveillance des corrections -> apprentissage SQLite -> HUD.
 final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private let port = 8765
+    /// VOXFLOW_PORT : essais en parallèle d'une version installée.
+    private let port = Int(ProcessInfo.processInfo.environment["VOXFLOW_PORT"] ?? "") ?? 8765
     private let maxRecordingDuration: TimeInterval = 10 * 60
 
+    private let settings = VoxFlowSettings.shared
     private let eventTap = GlobalEventTap()
-    private lazy var fnController = FnKeyController(tap: eventTap)
+    private lazy var fnController = FnKeyController(tap: eventTap, key: settings.dictationKey)
     private lazy var watcher = CorrectionWatcher(tap: eventTap)
     private lazy var client = InferenceClient(port: port)
-    private lazy var daemon = DaemonManager(daemonDirectory: Self.daemonDirectory(), port: port)
+    private lazy var engine = EngineController(
+        manager: DaemonManager(daemonDirectory: Self.daemonDirectory(), port: port),
+        client: client, mode: settings.engineMode)
+    private var onboarding: OnboardingWindowController?
+    private var settingsWindow: SettingsWindowController?
+    private var settingsModel: SettingsModel?
     private let audio = AudioCapture()
     /// Coupe le son du Mac pendant l'écoute, le rétablit dès la fin.
     private let muter = SystemAudioMuter()
@@ -24,11 +32,19 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private lazy var updater = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: self)
 
     private var statusItem: NSStatusItem!
-    private var daemonStatus = "arrêté"
+    private var statusLineItem: NSMenuItem?
+    private var lastStageKind = ""
     private var targetApp: NSRunningApplication?
     private var maxDurationWork: DispatchWorkItem?
     private var permissionTimer: Timer?
-    private var launchAttempted = false
+    /// Vrai entre le démarrage effectif du micro et l'arrêt de l'écoute.
+    private var listening = false
+    /// Écoute montrée (pilule, son coupé) ; une touche modificatrice ouvre d'abord le micro
+    /// sans rien montrer.
+    private var revealed = false
+    /// Touche modificatrice : dictée impossible (moteurs, micro), affiché seulement si le
+    /// geste se confirme.
+    private var pendingNotice: String?
     /// Empêche App Nap de mettre l'app (et la priorité de son démon) en sommeil ;
     /// la veille du Mac reste autorisée.
     private var activity: NSObjectProtocol?
@@ -38,7 +54,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         activity = ProcessInfo.processInfo.beginActivity(
             options: [.userInitiatedAllowingIdleSystemSleep, .latencyCritical],
-            reason: "Dictée à la touche Fn"
+            reason: "Dictée vocale VoxFlow"
         )
         muter.restoreAfterCrashIfNeeded()
         let migrated = VoxFlowPaths.migrateLegacyDataIfNeeded()
@@ -49,35 +65,50 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             NSLog("VoxFlow: lexique indisponible: \(error.localizedDescription)")
         }
         startUpdaterIfConfigured()
+        setUpMainMenu()
         setUpStatusItem()
 
         fnController.delegate = self
         fnController.log = { message in AppLog.write(message) }
+        fnController.onKeyEdge = { [weak self] down in
+            self?.onboarding?.model.keyHeld = down
+            self?.settingsModel?.keyHeld = down
+        }
         watcher.delegate = self
         audio.onSamples = { [weak self] samples in self?.client.sendAudio(samples) }
         audio.onLevel = { [weak self] level in
             DispatchQueue.main.async { self?.hud.setLevel(level) }
         }
-
-        AudioCapture.requestPermission { [weak self] granted in
-            if !granted { self?.hud.show(.error("Micro refusé : Réglages > Confidentialité > Micro")) }
+        engine.onChange = { [weak self] in self?.engineChanged() }
+        engine.onReady = { [weak self] in
+            guard let self, self.onboarding == nil, self.permissionsGranted else { return }
+            self.hud.show(.notice(L10n.tr("hud.ready", self.fnController.key.displayName)))
         }
-        startEventTapWhenTrusted()
-        refreshDaemon()
-        Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in self?.refreshDaemon() }
+
+        if settings.onboardingCompleted {
+            AudioCapture.requestPermission { [weak self] granted in
+                if !granted { self?.hud.show(.error(L10n.tr("hud.micDenied"))) }
+            }
+            startEventTapWhenTrusted(prompt: true)
+        } else {
+            // L'accueil demande les autorisations au bon moment, pas toutes d'un coup.
+            startEventTapWhenTrusted(prompt: false)
+            showOnboarding()
+        }
+        engine.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         watcher.end(.superseded)
         audio.stop()
         muter.restore()
-        daemon.stop()
+        engine.stop()
     }
 
     /// Le CGEventTap exige la permission Accessibilité ; on la demande puis on
     /// réessaie toutes les 2 s jusqu'à ce qu'elle soit accordée.
-    private func startEventTapWhenTrusted() {
-        if AXHelper.isTrusted(prompt: true), eventTap.start() {
+    private func startEventTapWhenTrusted(prompt: Bool) {
+        if AXHelper.isTrusted(prompt: prompt), eventTap.start() {
             rebuildMenu()
             return
         }
@@ -89,32 +120,103 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    private func refreshDaemon() {
-        client.health { [weak self] status, error in
+    private var permissionsGranted: Bool { AudioCapture.permissionGranted && AXHelper.isTrusted(prompt: false) }
+
+    /// Met à jour la ligne d'état du menu ; le menu n'est reconstruit qu'au changement
+    /// de nature (prêt, en cours, échec), pas à chaque octet téléchargé. Un échec est
+    /// signalé par le HUD quand l'accueil est fermé.
+    private func engineChanged() {
+        statusLineItem?.title = L10n.tr("menu.header", engine.statusLine)
+        let kind: String
+        let symbol: String
+        switch engine.stage {
+        case .ready: (kind, symbol) = ("ready", "waveform")
+        case .failed: (kind, symbol) = ("failed", "exclamationmark.triangle")
+        default: (kind, symbol) = ("busy", "arrow.down.circle")
+        }
+        guard kind != lastStageKind else { return }
+        lastStageKind = kind
+        if kind == "failed", onboarding == nil, !listening { hud.show(.error(engine.statusLine)) }
+        statusItem?.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "VoxFlow")
+        rebuildMenu()
+    }
+
+    // MARK: Accueil et réglages
+
+    private func showOnboarding() {
+        if let onboarding {
+            onboarding.present()
+            return
+        }
+        let model = OnboardingModel(engine: engine, settings: settings)
+        model.onKeyChange = { [weak self] key in self?.changeKey(to: key) }
+        let controller = OnboardingWindowController(model: model)
+        // Seul « Terminer » clôt l'accueil : fermé avant, il revient au prochain lancement.
+        model.onFinish = { [weak self, weak controller] in
+            self?.settings.onboardingCompleted = true
+            controller?.close()
+        }
+        controller.onClose = { [weak self] in
             guard let self else { return }
-            switch status {
-            case "ready": self.daemonStatus = "prêt"
-            case "loading": self.daemonStatus = "chargement des modèles…"
-            case "error": self.daemonStatus = "erreur : \(error ?? "voir daemon.log")"
-            default:
-                self.daemonStatus = self.daemon.isManagingProcess ? "démarrage…" : "arrêté"
-                if !self.launchAttempted {
-                    self.launchAttempted = true
-                    self.launchDaemon()
-                }
+            self.onboarding = nil
+            if !self.permissionsGranted {
+                self.hud.show(.notice(L10n.tr("hud.permissionsMissing")))
+            } else if self.engine.isReady {
+                self.hud.show(.notice(L10n.tr("hud.ready", self.fnController.key.displayName)))
             }
             self.rebuildMenu()
         }
+        onboarding = controller
+        controller.present()
     }
 
-    private func launchDaemon() {
-        do {
-            try daemon.launch()
-            daemonStatus = "démarrage…"
-        } catch {
-            daemonStatus = "arrêté (\(error.localizedDescription))"
+    @objc private func showSettings() {
+        if settingsWindow == nil {
+            let model = SettingsModel(engine: engine, settings: settings)
+            model.onKeyChange = { [weak self] key in self?.changeKey(to: key) }
+            model.onShowOnboarding = { [weak self] in
+                self?.settingsWindow?.close()
+                self?.showOnboarding()
+            }
+            settingsModel = model
+            settingsWindow = SettingsWindowController(model: model)
         }
+        settingsModel?.key = fnController.key
+        settingsWindow?.present()
+    }
+
+    private func changeKey(to key: DictationKey) {
+        settings.dictationKey = key
+        fnController.setKey(key)
+        onboarding?.model.key = key
+        onboarding?.model.keyHeld = false
+        settingsModel?.key = key
+        settingsModel?.keyHeld = false
         rebuildMenu()
+    }
+
+    /// Menu principal invisible (app de barre de menu) : sans lui, ⌘V, ⌘C et ⌘A ne
+    /// marchent pas dans les champs de l'accueil, et l'essai de dictée ne collerait rien.
+    private func setUpMainMenu() {
+        let main = NSMenu()
+        let appItem = NSMenuItem()
+        let appMenu = NSMenu()
+        appMenu.addItem(withTitle: L10n.tr("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appItem.submenu = appMenu
+        main.addItem(appItem)
+        let editItem = NSMenuItem()
+        let edit = NSMenu(title: "Edit")
+        edit.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+        edit.addItem(withTitle: "Redo", action: Selector(("redo:")), keyEquivalent: "Z")
+        edit.addItem(.separator())
+        edit.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        edit.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        edit.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        edit.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        editItem.submenu = edit
+        main.addItem(editItem)
+        NSApp.mainMenu = main
     }
 
     /// Démon embarqué dans l'app (Contents/Resources/daemon), sinon VOXFLOW_DAEMON_DIR.
@@ -127,33 +229,96 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     // MARK: Dictée
 
+    /// Pourquoi une dictée est impossible maintenant, nil si tout est prêt.
+    private func recordingProblem() -> String? {
+        if !AudioCapture.permissionGranted { return L10n.tr("hud.micNotAllowed") }
+        if !engine.isReady {
+            return engine.failure.map(EngineController.title(for:))
+                ?? L10n.tr("hud.notReady", Int((engine.fraction * 100).rounded(.down)))
+        }
+        return nil
+    }
+
+    /// Ouvre le micro. Avec Fn, l'écoute se montre aussitôt. Avec une touche modificatrice,
+    /// la pilule, la coupure du son et la fin de la surveillance attendent `.showMode`, et
+    /// un problème (moteurs pas prêts, micro refusé) ne s'affiche que si le geste se
+    /// confirme : un ⌘-clic ou un ⌘C un peu lent ne montre rien.
     private func startRecording() {
-        guard AudioCapture.permissionGranted else {
+        let quiet = fnController.key.isModifier
+        pendingNotice = nil
+        revealed = false
+        // Accueil au premier plan avant la page Essai : l'appui sert seulement à vérifier la
+        // touche. Dans une autre app, la dictée marche même si l'accueil reste ouvert.
+        if let onboarding, onboarding.window?.isKeyWindow == true, onboarding.model.page < OnboardingModel.pageCount - 1 {
             fnController.forceCancel()
-            hud.show(.error("Micro non autorisé"))
             return
         }
-        watcher.end(.superseded)
+        // Saisie sécurisée (champ mot de passe, Terminal) : le tap ne voit plus les autres
+        // touches, un raccourci ⌘ deviendrait une dictée.
+        if quiet, IsSecureEventInputEnabled() {
+            pendingNotice = L10n.tr("hud.secureInput")
+            return
+        }
+        if let problem = recordingProblem() {
+            if quiet {
+                pendingNotice = problem
+            } else {
+                fnController.forceCancel()
+                hud.show(.error(problem))
+            }
+            return
+        }
         targetApp = NSWorkspace.shared.frontmostApplication
         if let targetApp { AXHelper.primeAccessibility(for: targetApp) }
         client.begin(bundleID: targetApp?.bundleIdentifier ?? "")
-        if muter.muteOutput() { AppLog.write("Son du Mac coupé pendant l'écoute") }
         do {
             try audio.start()
         } catch {
-            muter.restore()
             client.cancel()
-            fnController.forceCancel()
-            hud.show(.error(error.localizedDescription))
+            if quiet {
+                pendingNotice = error.localizedDescription
+            } else {
+                fnController.forceCancel()
+                hud.show(.error(error.localizedDescription))
+            }
             return
         }
-        hud.show(.listening)
+        listening = true
+        if !quiet { reveal(.listening) }
         let work = DispatchWorkItem { [weak self] in self?.fnController.forceStop() }
         maxDurationWork = work
         DispatchQueue.main.asyncAfter(deadline: .now() + maxRecordingDuration, execute: work)
     }
 
+    /// Écoute confirmée : la surveillance des corrections précédente se termine, le son
+    /// du Mac se coupe, la pilule apparaît.
+    private func reveal(_ state: HUDState) {
+        guard listening else { return }
+        if !revealed {
+            revealed = true
+            watcher.end(.superseded)
+            if muter.muteOutput() { AppLog.write("Son du Mac coupé pendant l'écoute") }
+        }
+        hud.show(state)
+    }
+
+    private func showPendingNotice() {
+        guard let notice = pendingNotice else { return }
+        pendingNotice = nil
+        hud.show(.error(notice))
+    }
+
     private func stopAndProcess() {
+        guard listening else {
+            // Touche modificatrice : appui confirmé alors que la dictée était impossible.
+            showPendingNotice()
+            return
+        }
+        listening = false
+        if !revealed {
+            revealed = true
+            watcher.end(.superseded)
+        }
         maxDurationWork?.cancel()
         audio.stop()
         muter.restore()
@@ -167,17 +332,20 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             case let .failure(error):
                 self.fnController.setBusy(false)
                 self.hud.show(.error(error.localizedDescription))
-                self.refreshDaemon()
             }
         }
     }
 
     private func cancelRecording() {
+        pendingNotice = nil
+        let shown = revealed
+        listening = false
+        revealed = false
         maxDurationWork?.cancel()
         audio.stop()
         muter.restore()
         client.cancel()
-        hud.hide()
+        if shown { hud.hide() }
     }
 
     private func deliver(_ text: String) {
@@ -215,44 +383,52 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func rebuildMenu() {
         guard let menu = statusItem?.menu else { return }
         menu.removeAllItems()
-        menu.addItem(disabled("VoxFlow — démon : \(daemonStatus)"))
-        menu.addItem(disabled("Maintenir Fn : dictée · Double-tap Fn : mains libres"))
+        let key = fnController.key
+        let header = disabled(L10n.tr("menu.header", engine.statusLine))
+        statusLineItem = header
+        menu.addItem(header)
+        if engine.failure != nil {
+            menu.addItem(action(L10n.tr("engine.retry"), #selector(retryEngine)))
+        }
+        menu.addItem(disabled(L10n.tr("menu.hint", key.displayName)))
         menu.addItem(.separator())
 
         let trusted = AXHelper.isTrusted(prompt: false)
-        menu.addItem(action(trusted ? "Accessibilité : autorisée" : "Accessibilité : à autoriser…",
+        menu.addItem(action(L10n.tr(trusted ? "menu.accessibility.on" : "menu.accessibility.off"),
                             #selector(openAccessibilitySettings)))
-        menu.addItem(action(AudioCapture.permissionGranted ? "Micro : autorisé" : "Micro : à autoriser…",
+        menu.addItem(action(L10n.tr(AudioCapture.permissionGranted ? "menu.mic.on" : "menu.mic.off"),
                             #selector(openMicrophoneSettings)))
-        if let usage = UserDefaults(suiteName: "com.apple.HIToolbox")?.object(forKey: "AppleFnUsageType") as? Int, usage != 0 {
-            menu.addItem(action("⚠︎ Touche 🌐 : régler « Ne rien faire »…", #selector(openKeyboardSettings)))
+        if key == .fn, !OnboardingModel.globeKeyFree {
+            menu.addItem(action(L10n.tr("menu.globeKey"), #selector(openKeyboardSettings)))
         }
         menu.addItem(.separator())
 
         let rows = store?.recent(limit: 8) ?? []
-        let lexiconItem = NSMenuItem(title: "Lexique appris : \(store?.count() ?? 0) règle(s)", action: nil, keyEquivalent: "")
+        let lexiconItem = NSMenuItem(title: L10n.tr("menu.lexicon", store?.count() ?? 0), action: nil, keyEquivalent: "")
         let submenu = NSMenu()
-        if rows.isEmpty { submenu.addItem(disabled("Aucune correction apprise")) }
+        if rows.isEmpty { submenu.addItem(disabled(L10n.tr("menu.lexicon.empty"))) }
         for row in rows {
-            let item = action("Oublier « \(row.wrongVariant) » → \(row.canonicalTerm) (×\(row.frequency))", #selector(forgetRule(_:)))
+            let item = action(L10n.tr("menu.lexicon.forget", row.wrongVariant, row.canonicalTerm, row.frequency),
+                              #selector(forgetRule(_:)))
             item.representedObject = NSNumber(value: row.id)
             submenu.addItem(item)
         }
         lexiconItem.submenu = submenu
         menu.addItem(lexiconItem)
-        menu.addItem(action("Ouvrir le dossier ~/.voxflow", #selector(openDataFolder)))
-        menu.addItem(action("Relancer le démon", #selector(restartDaemon)))
+        menu.addItem(action(L10n.tr("menu.settings"), #selector(showSettings), key: ","))
+        menu.addItem(action(L10n.tr("menu.openFolder"), #selector(openDataFolder)))
+        menu.addItem(action(L10n.tr("menu.restartEngine"), #selector(restartDaemon)))
         menu.addItem(.separator())
-        menu.addItem(action("À propos de VoxFlow", #selector(showAbout)))
+        menu.addItem(action(L10n.tr("menu.about"), #selector(showAbout)))
         if Self.updatesConfigured {
-            let check = NSMenuItem(title: "Rechercher des mises à jour…",
+            let check = NSMenuItem(title: L10n.tr("menu.checkUpdates"),
                                    action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)), keyEquivalent: "")
             check.target = updater
             menu.addItem(check)
         }
-        menu.addItem(action("Licences tierces…", #selector(showLicenses)))
+        menu.addItem(action(L10n.tr("menu.licenses"), #selector(showLicenses)))
         menu.addItem(.separator())
-        menu.addItem(action("Quitter VoxFlow", #selector(quit), key: "q"))
+        menu.addItem(action(L10n.tr("menu.quit"), #selector(quit), key: "q"))
     }
 
     private func disabled(_ title: String) -> NSMenuItem {
@@ -287,9 +463,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     @objc private func restartDaemon() {
-        daemon.stop()
-        launchAttempted = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.launchDaemon() }
+        engine.retry()
+    }
+
+    @objc private func retryEngine() {
+        engine.retry()
     }
 
     @objc private func forgetRule(_ sender: NSMenuItem) {
@@ -337,17 +515,23 @@ extension AppController: SPUStandardUserDriverDelegate {
     var supportsGentleScheduledUpdateReminders: Bool { true }
 }
 
-// MARK: - Fn
+// MARK: - Touche de dictée
 
 extension AppController: FnKeyControllerDelegate {
     func fnKeyController(_ controller: FnKeyController, perform action: DictationAction) {
         switch action {
         case .startRecording: startRecording()
-        case .showMode(.pushToTalk): hud.show(.listening)
-        case .showMode(.locked): hud.show(.locked)
+        case .showMode(.pushToTalk): reveal(.listening)
+        case .showMode(.locked):
+            if listening {
+                reveal(.locked)
+            } else {
+                showPendingNotice()
+                fnController.forceCancel()
+            }
         case .stopAndProcess: stopAndProcess()
         case .cancelRecording: cancelRecording()
-        case .scheduleTimer: break // géré par FnKeyController
+        case .scheduleTimer: break // géré par DictationKeyController
         }
     }
 }
@@ -362,13 +546,13 @@ extension AppController: CorrectionWatcherDelegate {
         for correction in corrections {
             do {
                 try store.record(correction)
-                learned.append("\(correction.canonicalTerm) (au lieu de '\(correction.wrongVariant)')")
+                learned.append(L10n.tr("hud.learned.item", correction.canonicalTerm, correction.wrongVariant))
             } catch {
                 NSLog("VoxFlow: enregistrement impossible: \(error.localizedDescription)")
             }
         }
         if !learned.isEmpty {
-            hud.show(.learned("Appris : " + learned.joined(separator: ", ")))
+            hud.show(.learned(L10n.tr("hud.learned", learned.joined(separator: ", "))))
             rebuildMenu()
         }
     }

@@ -34,8 +34,8 @@ public final class AudioCapture {
 
         public var errorDescription: String? {
             switch self {
-            case .noInputDevice: return "Aucun micro disponible"
-            case .converterUnavailable: return "Conversion audio 16 kHz impossible"
+            case .noInputDevice: return L10n.tr("error.noMic")
+            case .converterUnavailable: return L10n.tr("error.audioConversion")
             }
         }
     }

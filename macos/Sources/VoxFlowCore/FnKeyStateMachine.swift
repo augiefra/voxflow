@@ -154,6 +154,13 @@ public struct DictationStateMachine {
         return [.stopAndProcess]
     }
 
+    /// Retour au repos (changement de touche). La génération des minuteries continue
+    /// d'avancer : une minuterie de l'ancienne touche ne peut rien annuler.
+    public mutating func reset() {
+        timerGeneration += 1
+        state = .idle
+    }
+
     /// Annulation imposée (micro indisponible, démon absent…).
     public mutating func forceCancel() -> [DictationAction] {
         switch state {
@@ -172,25 +179,57 @@ public struct DictationStateMachine {
 // MARK: - Branchement sur le CGEventTap
 
 public protocol FnKeyControllerDelegate: AnyObject {
-    func fnKeyController(_ controller: FnKeyController, perform action: DictationAction)
+    func fnKeyController(_ controller: DictationKeyController, perform action: DictationAction)
 }
 
-/// Écoute `kCGEventFlagsChanged`, détecte Fn/Globe via `CGEventFlags.maskSecondaryFn`
-/// et pilote la `DictationStateMachine` (minuteries comprises) sur le thread principal.
-public final class FnKeyController {
-    /// kVK_Function ; certains claviers récents envoient 179 pour la touche Globe.
-    public static let fnKeyCodes: Set<Int64> = [63, 179]
+public typealias FnKeyController = DictationKeyController
+
+/// Écoute le `CGEventTap`, détecte la touche de dictée et pilote la
+/// `DictationStateMachine` (minuteries comprises) sur le thread principal.
+///
+/// Fn garde exactement son comportement historique. Une touche modificatrice suit en
+/// plus la règle « raccourci » : le micro ne s'ouvre qu'après `armDelay` (150 ms) et
+/// l'écoute ne se montre (`.showMode`) qu'après `confirmDelay` de plus ; une autre
+/// touche, un clic, un défilement ou un autre modificateur avant cela annule sans rien
+/// montrer. En mains libres, un appui ne termine la dictée qu'au relâchement d'un appui
+/// resté seul (⌘V à droite en pleine dictée ne coupe pas l'écoute).
+public final class DictationKeyController {
+    public static let fnKeyCodes = ModifierTable.fnKeyCodes
     public static let escapeKeyCode: Int64 = 53
 
     public weak var delegate: FnKeyControllerDelegate?
     /// Journal des appuis (durées, transitions) pour régler les seuils.
     public var log: ((String) -> Void)?
+    /// Appui (vrai) et relâchement (faux) de la touche : sert à l'essai de l'accueil.
+    public var onKeyEdge: ((Bool) -> Void)?
     public private(set) var machine: DictationStateMachine
-    private var fnIsDown = false
-    private var lastFnEdge: TimeInterval = 0
+    public private(set) var key: DictationKey
 
-    public init(tap: GlobalEventTap, timing: DictationTiming = DictationTiming()) {
+    private let now: () -> TimeInterval
+    private let schedule: (TimeInterval, @escaping () -> Void) -> Void
+    private var keyIsDown = false
+    private var lastEdge: TimeInterval = 0
+    /// Vrai quand `.startRecording` a été transmis (micro ouvert).
+    private var started = false
+    private var armGeneration = 0
+    /// Appui commencé alors qu'un autre modificateur était tenu : ignoré jusqu'au relâchement.
+    private var ignoringPress = false
+    /// Mains libres : appui en cours qui terminera la dictée s'il reste seul.
+    private var lockedStopCandidate = false
+
+    public init(
+        tap: GlobalEventTap,
+        key: DictationKey = .fn,
+        timing: DictationTiming = DictationTiming(),
+        now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
+        schedule: @escaping (TimeInterval, @escaping () -> Void) -> Void = { delay, block in
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: block)
+        }
+    ) {
         machine = DictationStateMachine(timing: timing)
+        self.key = key
+        self.now = now
+        self.schedule = schedule
         tap.addHandler { [weak self] event in self?.handle(event) }
     }
 
@@ -198,44 +237,165 @@ public final class FnKeyController {
 
     public func setBusy(_ busy: Bool) { machine.isBusy = busy }
 
-    public func forceStop() { dispatch(machine.forceStop()) }
+    public func forceStop() { route(machine.forceStop()) }
 
-    public func forceCancel() { dispatch(machine.forceCancel()) }
+    public func forceCancel() { route(machine.forceCancel()) }
+
+    /// Change de touche à chaud ; une dictée en cours est annulée.
+    public func setKey(_ newKey: DictationKey) {
+        guard newKey != key else { return }
+        if machine.state != .idle { forceCancel() }
+        machine.reset()
+        if keyIsDown { onKeyEdge?(false) }
+        keyIsDown = false
+        ignoringPress = false
+        lockedStopCandidate = false
+        started = false
+        armGeneration += 1
+        key = newKey
+        log?("Touche de dictée : \(newKey.rawValue)")
+    }
 
     func handle(_ event: GlobalEventTap.Event) {
-        let now = ProcessInfo.processInfo.systemUptime
         switch event {
         case let .flagsChanged(keyCode, flags):
-            guard Self.fnKeyCodes.contains(keyCode) else { return }
-            let down = flags.contains(.maskSecondaryFn)
-            guard down != fnIsDown else { return }
-            fnIsDown = down
-            let before = machine.state
-            let actions = down ? machine.fnDown(at: now) : machine.fnUp(at: now)
-            log?(String(format: "Fn %@ (+%.0f ms) %@ -> %@ %@", down ? "↓" : "↑", (now - lastFnEdge) * 1000,
-                        "\(before)", "\(machine.state)", "\(actions)"))
-            lastFnEdge = now
-            dispatch(actions)
+            if let down = key.isDown(keyCode: keyCode, flags: flags, wasDown: keyIsDown) {
+                guard down != keyIsDown else { return }
+                keyIsDown = down
+                onKeyEdge?(down)
+                down ? keyPressed(flags: flags) : keyReleased()
+            } else if key.isModifier, keyIsDown || machine.state != .idle,
+                      ModifierTable.isPress(keyCode: keyCode, flags: flags) {
+                otherInput(isEscape: false, what: "modificateur \(keyCode)")
+            }
         case let .keyDown(keyCode, _, _, _):
             // Après un appui bref sur 🌐, macOS émet aussi un keyDown 179 : c'est la touche
             // Fn elle-même, pas un raccourci (sinon chaque double-tap était annulé).
-            guard machine.state != .idle, !Self.fnKeyCodes.contains(keyCode) else { return }
-            let actions = machine.otherKeyDown(isEscape: keyCode == Self.escapeKeyCode)
-            if !actions.isEmpty { log?("Touche \(keyCode) pendant la dictée -> \(actions)") }
-            dispatch(actions)
+            if key == .fn, Self.fnKeyCodes.contains(keyCode) { return }
+            otherInput(isEscape: keyCode == Self.escapeKeyCode, what: "touche \(keyCode)")
         case .mouseDown:
-            break
+            // ⌘-clic, ⌥-clic… : raccourci, pas dictée. Fn garde son comportement (ignoré).
+            guard key.isModifier else { return }
+            otherInput(isEscape: false, what: "clic")
+        case .scroll:
+            // ⌃-défilement (zoom), ⌘-défilement… : raccourci aussi.
+            guard key.isModifier else { return }
+            otherInput(isEscape: false, what: "défilement")
         }
+    }
+
+    // MARK: Interne
+
+    private func keyPressed(flags: CGEventFlags) {
+        let time = now()
+        if key.isModifier, ModifierTable.othersHeld(besides: key, flags: flags) {
+            ignoringPress = true
+            log?("\(key.symbol) ↓ avec un autre modificateur : ignoré")
+            return
+        }
+        if key.isModifier, machine.state == .lockedRecording {
+            lockedStopCandidate = true
+            return
+        }
+        transition(down: true, at: time)
+        if key.armDelay > 0, !started, isHeld(machine.state) { arm() }
+    }
+
+    private func keyReleased() {
+        if ignoringPress {
+            ignoringPress = false
+            return
+        }
+        let time = now()
+        if lockedStopCandidate {
+            lockedStopCandidate = false
+            transition(down: true, at: time)
+        }
+        transition(down: false, at: time)
+    }
+
+    private func transition(down: Bool, at time: TimeInterval) {
+        let before = machine.state
+        let actions = down ? machine.fnDown(at: time) : machine.fnUp(at: time)
+        log?(String(format: "%@ %@ (+%.0f ms) %@ -> %@ %@", key.symbol, down ? "↓" : "↑", (time - lastEdge) * 1000,
+                    "\(before)", "\(machine.state)", "\(actions)"))
+        lastEdge = time
+        route(actions)
+    }
+
+    /// Autre touche, clic ou modificateur pendant que la touche est tenue ou attendue.
+    private func otherInput(isEscape: Bool, what: String) {
+        if lockedStopCandidate {
+            lockedStopCandidate = false // raccourci en mains libres : la dictée continue
+            return
+        }
+        guard machine.state != .idle else { return }
+        let actions = machine.otherKeyDown(isEscape: isEscape)
+        if !actions.isEmpty { log?("\(what) pendant la dictée -> \(actions)\(started ? "" : " (silencieux)")") }
+        route(actions)
+    }
+
+    private func isHeld(_ state: DictationState) -> Bool {
+        switch state {
+        case .pressed, .secondPress: return true
+        default: return false
+        }
+    }
+
+    private func arm() {
+        armGeneration += 1
+        let generation = armGeneration
+        schedule(key.armDelay) { [weak self] in
+            guard let self, generation == self.armGeneration, !self.started, self.isHeld(self.machine.state) else { return }
+            self.started = true
+            self.log?("\(self.key.symbol) tenue \(Int(self.key.armDelay * 1000)) ms : micro ouvert")
+            self.dispatch([.startRecording])
+            self.schedule(self.key.confirmDelay) { [weak self] in
+                guard let self, generation == self.armGeneration, self.started, self.isHeld(self.machine.state) else { return }
+                self.dispatch([.showMode(.pushToTalk)])
+            }
+        }
+    }
+
+    /// Filtre les actions d'une touche modificatrice tant que l'écoute n'a pas démarré.
+    private func route(_ actions: [DictationAction]) {
+        var out: [DictationAction] = []
+        for action in actions {
+            switch action {
+            case .startRecording:
+                if key.armDelay == 0 {
+                    started = true
+                    out.append(action)
+                }
+            case .showMode(.pushToTalk):
+                if started { out.append(action) }
+            case .showMode(.locked):
+                if !started {
+                    started = true
+                    armGeneration += 1
+                    out.append(.startRecording)
+                }
+                out.append(action)
+            case .stopAndProcess, .cancelRecording:
+                armGeneration += 1
+                guard started else { continue } // rien n'a été montré : annulation silencieuse
+                started = false
+                out.append(action)
+            case .scheduleTimer:
+                out.append(action)
+            }
+        }
+        dispatch(out)
     }
 
     private func dispatch(_ actions: [DictationAction]) {
         for action in actions {
             if case let .scheduleTimer(id, delay) = action {
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                schedule(delay) { [weak self] in
                     guard let self else { return }
                     let actions = self.machine.timerFired(id: id)
                     if !actions.isEmpty { self.log?("Délai du second tap écoulé -> \(actions)") }
-                    self.dispatch(actions)
+                    self.route(actions)
                 }
             } else {
                 delegate?.fnKeyController(self, perform: action)

@@ -2,6 +2,8 @@
 
 import asyncio
 import json
+import logging
+import os
 import sqlite3
 import tempfile
 import unittest
@@ -103,6 +105,51 @@ class LexiconTests(unittest.TestCase):
         self.assertIn('- "ever volt" -> "EuroVolt"', block)
 
 
+class PrepareTests(unittest.TestCase):
+    """Modèles personnalisés : le magasin ne s'en charge pas, et le Hub reste en ligne pour eux."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.calls = []
+        self._saved = (d.model_store.check_machine, d.model_store.ensure_models)
+        d.model_store.check_machine = lambda **_: None
+
+        def fake_ensure(keys, progress, **_):
+            self.calls.append(list(keys))
+            return progress, {k: Path("/magasin") / k for k in keys}
+
+        d.model_store.ensure_models = fake_ensure
+
+    def tearDown(self):
+        d.model_store.check_machine, d.model_store.ensure_models = self._saved
+        self.tmp.cleanup()
+
+    def service(self, asr: str, llm: str, use_llm: bool) -> d.DictationService:
+        engines = d.MLXEngines(asr, llm, 480, use_llm=use_llm)
+        return d.DictationService(engines, d.Lexicon(Path(self.tmp.name) / "lexicon.db"))
+
+    def test_custom_asr_skips_store(self):
+        service = self.service("moi/autre-asr", d.DEFAULT_LLM_MODEL, use_llm=False)
+        paths = service.prepare()
+        self.assertEqual(paths, {"asr": None, "llm": None})
+        self.assertEqual(self.calls, [])
+        self.assertFalse(service.engines.all_local(paths["asr"], paths["llm"]))   # Hub en ligne
+        self.assertEqual(service.progress.snapshot()["bytes_total"], 0)
+
+    def test_custom_llm_keeps_store_for_asr(self):
+        service = self.service(d.DEFAULT_ASR_MODEL, "moi/autre-llm", use_llm=True)
+        paths = service.prepare()
+        self.assertEqual(self.calls, [["asr"]])
+        self.assertEqual(paths, {"asr": Path("/magasin/asr"), "llm": None})
+        self.assertFalse(service.engines.all_local(paths["asr"], paths["llm"]))
+
+    def test_default_models_load_offline(self):
+        service = self.service(d.DEFAULT_ASR_MODEL, d.DEFAULT_LLM_MODEL, use_llm=True)
+        paths = service.prepare()
+        self.assertEqual(self.calls, [["asr", "llm"]])
+        self.assertTrue(service.engines.all_local(paths["asr"], paths["llm"]))
+
+
 class ServerTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -128,8 +175,43 @@ class ServerTests(unittest.IsolatedAsyncioTestCase):
             pass
         self.tmp.cleanup()
 
+    async def get(self, path: str, host: str, extra: str = "") -> str:
+        reader, writer = await asyncio.open_connection("127.0.0.1", 8799)
+        writer.write(f"GET {path} HTTP/1.1\r\nHost: {host}\r\n{extra}Connection: close\r\n\r\n".encode())
+        await writer.drain()
+        data = await reader.read()
+        writer.close()
+        return data.decode()
+
+    async def test_health_contract_and_host_check(self):
+        os.environ["VOXFLOW_APP_VERSION"] = "9.9.9"
+        try:
+            reply = await self.get("/health", "127.0.0.1:8799")
+        finally:
+            os.environ.pop("VOXFLOW_APP_VERSION", None)
+        self.assertIn(" 200 ", reply.split("\r\n", 1)[0])
+        body = json.loads(reply.split("\r\n\r\n", 1)[1])
+        self.assertEqual((body["pid"], body["mode"], body["version"]), (os.getpid(), "full", "9.9.9"))
+        for key in ("status", "error", "phase", "bytes_done", "bytes_total", "disk_free_bytes", "retry"):
+            self.assertIn(key, body)
+        self.assertIn(" 200 ", (await self.get("/health", "localhost:8799")).split("\r\n", 1)[0])
+        # DNS rebinding (Host d'un site) et page web (Origin) : refusés, /health compris.
+        self.assertIn(" 421 ", (await self.get("/health", "evil.example:8799")).split("\r\n", 1)[0])
+        self.assertIn(" 421 ", (await self.get("/health", "127.0.0.1:80")).split("\r\n", 1)[0])
+        self.assertIn(" 403 ", (await self.get("/health", "127.0.0.1:8799", "Origin: https://evil.example\r\n"))
+                      .split("\r\n", 1)[0])
+
     async def test_streaming_dictation_round_trip(self):
         headers = {"Authorization": f"Bearer {self.token}"}
+        with self.assertLogs(d.log, logging.INFO) as logs:
+            await self.dictate(headers)
+        # Le journal peut être copié dans un ticket : aucun mot dicté au niveau INFO.
+        self.assertTrue(any(r.getMessage().startswith("Dictée") for r in logs.records))
+        for record in logs.records:
+            self.assertNotIn("facil", record.getMessage().lower())
+            self.assertNotIn("secondes", record.getMessage())
+
+    async def dictate(self, headers: dict) -> None:
         async with connect("ws://127.0.0.1:8799/v1/dictation", additional_headers=headers) as ws:
             await ws.send(json.dumps({"type": "start", "bundle_id": "com.apple.TextEdit", "sample_rate": 16000}))
             self.assertEqual(json.loads(await ws.recv())["type"], "ready")

@@ -3,7 +3,7 @@ import CoreGraphics
 import Foundation
 
 /// Unique `CGEventTap` de l'application : touche Fn (machine à états), frappes
-/// pendant la surveillance post-collage et clics souris.
+/// pendant la surveillance post-collage, clics et défilements.
 ///
 /// Le tap est actif (`.defaultTap`, qui demande la permission Accessibilité) mais
 /// ne modifie ni ne bloque aucun événement : il les observe et les laisse passer.
@@ -14,6 +14,8 @@ public final class GlobalEventTap {
         case flagsChanged(keyCode: Int64, flags: CGEventFlags)
         case keyDown(keyCode: Int64, flags: CGEventFlags, characters: String, isRepeat: Bool)
         case mouseDown
+        /// Défilement de l'utilisateur (l'inertie qui suit est ignorée).
+        case scroll
     }
 
     public typealias Handler = (Event) -> Void
@@ -49,7 +51,7 @@ public final class GlobalEventTap {
     @discardableResult
     public func start() -> Bool {
         if tap != nil { return true }
-        let types: [CGEventType] = [.flagsChanged, .keyDown, .leftMouseDown, .rightMouseDown, .otherMouseDown]
+        let types: [CGEventType] = [.flagsChanged, .keyDown, .leftMouseDown, .rightMouseDown, .otherMouseDown, .scrollWheel]
         let mask = types.reduce(CGEventMask(0)) { $0 | (CGEventMask(1) << CGEventMask($1.rawValue)) }
 
         let callback: CGEventTapCallBack = { _, type, event, refcon in
@@ -110,6 +112,9 @@ public final class GlobalEventTap {
             )
         case .leftMouseDown, .rightMouseDown, .otherMouseDown:
             translated = .mouseDown
+        case .scrollWheel:
+            guard event.getIntegerValueField(.scrollWheelEventMomentumPhase) == 0 else { return }
+            translated = .scroll
         default:
             return
         }

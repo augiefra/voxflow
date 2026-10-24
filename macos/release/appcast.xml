@@ -5,6 +5,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <title>VoxFlow</title>
     <language>fr</language>
     <item>
+      <title>VoxFlow 0.1.1</title>
+      <pubDate>Sat, 24 Oct 2026 06:47:46 GMT</pubDate>
+      <sparkle:version>0.1.1</sparkle:version>
+      <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Plus besoin du Terminal : VoxFlow installe lui-même ce qu&#x27;il lui faut. Un court accueil lance le téléchargement des moteurs, demande les autorisations, te fait choisir ta touche et te propose un essai.</p><p>Nouveau : la touche de dictée au choix (Fn, ou ⌘, ⌥, ⌃ de droite), un mode léger (3,1 Go, sans la mise en forme par IA) pour les Mac de 8 Go, l&#x27;interface en anglais, et un téléchargement qui reprend là où il s&#x27;est arrêté après une coupure. Les modèles déjà téléchargés par la 0.1.0 sont réutilisés. Le journal des moteurs ne contient plus le texte que tu dictes.</p><p>No more Terminal: VoxFlow now sets itself up. A short welcome starts the engine download, asks for permissions, lets you pick your key and try it. New: choose your dictation key (Fn, or right ⌘, ⌥, ⌃), a Light mode (3.1 GB, no AI formatting) for 8 GB Macs, an English interface, and downloads that resume after a dropped connection. The engine log no longer contains what you dictate.</p>]]></description>
+      <enclosure url="https://github.com/augiefra/voxflow/releases/download/v0.1.1/VoxFlow-0.1.1.dmg" type="application/octet-stream" sparkle:edSignature="mAt4n6YIWkKBnNC1n2n7z9HxOd2DPrVAR2n9sFROR2oRFiym8zOwHqcnxMWkxjGoNde+iDd+Hy55DMO0KKCrCg==" length="19303459"></enclosure>
+    </item>
+    <item>
       <title>VoxFlow 0.1.0</title>
       <pubDate>Fri, 23 Oct 2026 20:38:02 GMT</pubDate>
       <sparkle:version>0.1.0</sparkle:version>
@@ -15,6 +24,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: A5q7nGw6QVKhVES9U5iEA3wU9i6cd+8c/8dPKESvgFF/gLQqoVvS+qedHZBrxZwUFKWQYM8TTa07NjDLw6iHDQ==
-length: 1663
+edSignature: 15Tx7ERIZCZUei0q+JaRvGc6iZrKeDfLrm8R0W5Tyfcsk8ZnEdkU4cwYq4/QnISdUwJxwnVPHNdt9gsrBWumCA==
+length: 3301
 -->

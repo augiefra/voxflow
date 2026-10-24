@@ -5,6 +5,8 @@ public enum HUDState: Equatable {
     case locked
     case processing
     case learned(String)
+    /// Message bref et positif (« VoxFlow est prêt »).
+    case notice(String)
     case error(String)
 }
 
@@ -155,7 +157,7 @@ public final class HUDController {
         recordDot.layer?.backgroundColor = Self.red.cgColor
         recordDot.layer?.cornerRadius = 3.5
         leadingIcon.symbolConfiguration = .init(pointSize: 12, weight: .semibold)
-        stopIcon.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: "Fn pour finir")
+        stopIcon.image = NSImage(systemSymbolName: "stop.fill", accessibilityDescription: L10n.tr("a11y.stopHint"))
         stopIcon.symbolConfiguration = .init(pointSize: 10, weight: .semibold)
         stopIcon.contentTintColor = Self.secondary
         label.font = .systemFont(ofSize: 12.5, weight: .medium)
@@ -238,7 +240,7 @@ public final class HUDController {
         switch state {
         case .listening, .locked:
             if state == .locked {
-                setIcon("lock.fill", Self.orange, "Écoute verrouillée")
+                setIcon("lock.fill", Self.orange, L10n.tr("a11y.locked"))
                 wave.color = Self.orange
             } else {
                 wave.color = .white
@@ -246,15 +248,19 @@ public final class HUDController {
             startRecordingVisuals()
         case .processing:
             stopRecordingVisuals()
-            setIcon("sparkles", Self.cyan, "Traitement IA")
-            label.stringValue = "Mise en forme…"
+            setIcon("sparkles", Self.cyan, L10n.tr("a11y.processing"))
+            label.stringValue = L10n.tr("hud.processing")
         case let .learned(message):
             stopRecordingVisuals()
-            setIcon("checkmark.circle.fill", Self.green, "Appris")
+            setIcon("checkmark.circle.fill", Self.green, L10n.tr("a11y.learned"))
+            label.stringValue = message
+        case let .notice(message):
+            stopRecordingVisuals()
+            setIcon("checkmark.circle.fill", Self.green, message)
             label.stringValue = message
         case let .error(message):
             stopRecordingVisuals()
-            setIcon("exclamationmark.triangle.fill", Self.yellow, "Erreur")
+            setIcon("exclamationmark.triangle.fill", Self.yellow, L10n.tr("a11y.error"))
             label.stringValue = message
         }
     }
@@ -289,7 +295,7 @@ public final class HUDController {
 
     private func isTransient(_ state: HUDState) -> Bool {
         switch state {
-        case .learned, .error: return true
+        case .learned, .notice, .error: return true
         case .listening, .locked, .processing: return false
         }
     }

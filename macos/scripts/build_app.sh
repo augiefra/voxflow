@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Construit VoxFlow.app (release), y embarque le démon Python et Sparkle, puis signe
+# Construit VoxFlow.app (release), y embarque le démon Python, uv et Sparkle, puis signe
 # le bundle avec le runtime renforcé.
 # Usage : scripts/build_app.sh [--install] [--developer-id] [--version X.Y.Z]
 #   --install       copie l'app dans ~/Applications
@@ -29,14 +29,22 @@ APPCAST_URL="${APPCAST_URL:-}"
 [[ -f "$ROOT/release.env" ]] && source "$ROOT/release.env"
 
 swift build --package-path "$ROOT" -c release --arch arm64
+UV_DIR="$("$ROOT/scripts/fetch_uv.sh")"
 BIN_PATH="$(swift build --package-path "$ROOT" -c release --arch arm64 --show-bin-path)"
 
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Frameworks" "$APP/Contents/Resources/daemon"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Frameworks" "$APP/Contents/Helpers" "$APP/Contents/Resources/daemon"
 cp "$BIN_PATH/VoxFlow" "$APP/Contents/MacOS/VoxFlow"
+# uv installe Python et les paquets du démon au premier lancement : plus aucun prérequis.
+cp "$UV_DIR/uv" "$APP/Contents/Helpers/uv"
 ditto "$BIN_PATH/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
-cp "$DAEMON_SRC/inference_daemon.py" "$DAEMON_SRC/pyproject.toml" "$DAEMON_SRC/uv.lock" "$APP/Contents/Resources/daemon/"
+cp "$DAEMON_SRC/inference_daemon.py" "$DAEMON_SRC/model_store.py" "$DAEMON_SRC/pyproject.toml" "$DAEMON_SRC/uv.lock" \
+  "$APP/Contents/Resources/daemon/"
+# Textes français et anglais (l'app suit la langue du Mac).
+for lang in en fr; do
+  ditto "$ROOT/Resources/$lang.lproj" "$APP/Contents/Resources/$lang.lproj"
+done
 cp "$ROOT/Resources/THIRD_PARTY_NOTICES.txt" "$APP/Contents/Resources/"
 cp "${ROOT:h}/LICENSE" "$APP/Contents/Resources/LICENSE.txt"
 
@@ -74,6 +82,7 @@ sign --preserve-metadata=entitlements "$SPARKLE/XPCServices/Downloader.xpc"
 sign "$SPARKLE/Autoupdate"
 sign "$SPARKLE/Updater.app"
 sign "$APP/Contents/Frameworks/Sparkle.framework"
+sign --identifier com.ericcologni.voxflow.uv "$APP/Contents/Helpers/uv"
 sign --entitlements "$ROOT/Resources/VoxFlow.entitlements" "$APP"
 codesign --verify --strict --deep "$APP"
 echo "Signé avec : $IDENTITY (runtime renforcé)"
