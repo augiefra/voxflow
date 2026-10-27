@@ -83,6 +83,9 @@
 "menu.checkUpdates" = "Rechercher des mises à jour…";
 "menu.globeKey" = "⚠︎ Touche 🌐 : régler « Ne rien faire »…";
 "menu.header" = "VoxFlow — %@";
+"menu.history" = "Dernières dictées";
+"menu.history.empty" = "Aucune dictée pour l'instant";
+"menu.history.hint" = "Cliquer pour coller dans le champ actif (et copier)";
 "menu.hint" = "Maintenir %@ : dictée · Deux appuis : mains libres";
 "menu.lexicon" = "Lexique appris (%ld)";
 "menu.lexicon.empty" = "Aucune correction apprise";

@@ -62,7 +62,7 @@ VoxFlow/
 1. **Appui sur la touche** : avec Fn, l'enregistrement démarre aussitôt ; avec ⌘, ⌥ ou ⌃ de droite, le micro s'ouvre après 150 ms et l'écoute ne se montre (pilule, son coupé) qu'après 150 ms de plus, pour qu'un raccourci (⌘C, ⌥-clic…) ne déclenche rien. VoxFlow pose `AXManualAccessibility` sur l'app au premier plan, pour que VS Code, Cursor, Slack ou Chrome aient le temps d'exposer leurs champs. L'audio part au démon par blocs, pendant que tu parles.
 2. **Démon** : Voxtral transcrit en streaming (`create_streaming_session`, `temperature=0.0`, `transcription_delay_ms=480`). À l'arrêt, il ne reste que la fin de l'audio à décoder.
 3. **Nettoyage** : si Voxtral rend déjà un texte propre (ni hésitation, ni reprise, ni mot du dictionnaire dépendant du contexte), Qwen est sauté et seuls le dictionnaire sans ambiguïté et la typographie française s'appliquent. Sinon, sélection des règles du lexique (correspondance floue et phonétique sur la transcription brute, plus le Top 100 des plus fréquentes), bloc `<dictionnaire_utilisateur>`, prompt anti-réponse et sortie imposée entre `<texte_nettoye>`. Une sortie sans balises, ou de longueur anormale, est rejetée au profit d'un nettoyage de secours.
-4. **Collage** : sauvegarde du presse-papier, puis Cmd+V (touche « v » de ta disposition clavier, AZERTY compris), puis restauration après 150 ms.
+4. **Collage** : sauvegarde du presse-papier, puis Cmd+V (touche « v » de ta disposition clavier, AZERTY compris), puis restauration après 150 ms. Les 5 dernières dictées restent en mémoire (jamais sur le disque) : menu « Dernières dictées », un clic les recolle dans le champ actif et les laisse dans le presse-papier.
 5. **Surveillance (25 s, ou jusqu'au changement de focus, Entrée ou Cmd+Entrée)** :
    - méthode primaire : valeur `kAXValueAttribute` du champ, suivie par notifications `AXObserver` et relecture toutes les 300 ms ; à Entrée, le texte est capturé avant l'envoi ;
    - méthode de secours (Terminal, champs sans AX) : buffer d'ombre reconstruit à partir des frappes (effacement, flèches, Option et Cmd, Ctrl+A/E/W/U/K, Cmd+V/X, sélection Maj).
@@ -82,7 +82,7 @@ Pilule noire en bas au centre, au-dessus du Dock :
 - **Écoute** : point rouge, vagues blanches qui suivent ta voix, chrono.
 - **Mains libres** : cadenas, vagues orange qui ondulent même en silence, chrono, stop.
 - **Traitement** : « Mise en forme… ».
-- **Toasts** : « Appris : … » et erreurs.
+- **Toasts** : « Appris : … » et erreurs. Un « Appris » né pendant une dictée (surveillance close par la dictée suivante) s'affiche à la fin de celle-ci.
 
 Pour le geste, un tap dure moins de 300 ms et le second tap doit arriver dans les 400 ms. Ces seuils ont été élargis par rapport aux 250 ms du cahier des charges, après l'essai réel.
 

@@ -27,6 +27,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let hud = HUDController()
     private let injector = TextInjector()
     private let learner = DiffLearner()
+    private var history = DictationHistory()
     private var store: LexiconStore?
     /// Sparkle : démarré seulement si l'Info.plist porte un flux et une clé publique.
     private lazy var updater = SPUStandardUpdaterController(startingUpdater: false, updaterDelegate: nil, userDriverDelegate: self)
@@ -356,12 +357,14 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// du Mac se coupe, la pilule apparaît.
     private func reveal(_ state: HUDState) {
         guard listening else { return }
+        // Pilule d'abord : un « Appris » issu de la surveillance close attend alors la fin
+        // de la dictée au lieu d'être aussitôt recouvert.
+        hud.show(state)
         if !revealed {
             revealed = true
             watcher.end(.superseded)
             if muter.muteOutput() { AppLog.write("Son du Mac coupé pendant l'écoute") }
         }
-        hud.show(state)
     }
 
     private func showPendingNotice() {
@@ -377,6 +380,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return
         }
         listening = false
+        hud.show(.processing)
         if !revealed {
             revealed = true
             watcher.end(.superseded)
@@ -385,7 +389,6 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         audio.stop()
         muter.restore()
         fnController.setBusy(true)
-        hud.show(.processing)
         client.finish { [weak self] result in
             guard let self else { return }
             switch result {
@@ -417,6 +420,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return
         }
         hud.hide()
+        history.add(text)
         let app = NSWorkspace.shared.frontmostApplication ?? targetApp
         injector.paste(text) { [weak self] in
             guard let self else { return }
@@ -453,6 +457,23 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             menu.addItem(action(L10n.tr("engine.retry"), #selector(retryEngine)))
         }
         menu.addItem(disabled(L10n.tr("menu.hint", key.displayName)))
+
+        let historyItem = NSMenuItem(title: L10n.tr("menu.history"), action: nil, keyEquivalent: "")
+        let historyMenu = NSMenu()
+        if history.items.isEmpty {
+            historyMenu.addItem(disabled(L10n.tr("menu.history.empty")))
+        } else {
+            historyMenu.addItem(disabled(L10n.tr("menu.history.hint")))
+            for (index, text) in history.items.enumerated() {
+                let item = action(DictationHistory.menuTitle(text), #selector(pasteFromHistory(_:)))
+                item.representedObject = text
+                item.toolTip = text
+                if index < 9 { item.keyEquivalent = String(index + 1) }
+                historyMenu.addItem(item)
+            }
+        }
+        historyItem.submenu = historyMenu
+        menu.addItem(historyItem)
         menu.addItem(.separator())
 
         let trusted = AXHelper.isTrusted(prompt: false)
@@ -530,6 +551,11 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func retryEngine() {
         engine.retry()
+    }
+
+    @objc private func pasteFromHistory(_ sender: NSMenuItem) {
+        guard let text = sender.representedObject as? String else { return }
+        injector.pasteAndKeep(text)
     }
 
     @objc private func forgetRule(_ sender: NSMenuItem) {

@@ -70,6 +70,7 @@ VoxFlow is built and tuned for **French**. Other languages are untested for now.
 - The speech engine listens only on `127.0.0.1`, behind a random token, and refuses requests from web pages.
 - Keystrokes are only observed for 25 seconds after a paste, in memory, to learn your corrections. Password fields are never read.
 - The learned dictionary stays in `~/.voxflow/lexicon.db`, and you can forget any entry from the menu.
+- Your last five dictations stay in memory (never on disk) under Recent Dictations in the menu: if a paste landed in the wrong place, click one to paste it again.
 - The engine log (`~/.voxflow/daemon.log`) keeps durations and lengths, never what you dictate. Text written there by version 0.1.0 is masked, including in « Copy log ».
 - Update checks fetch a signed feed from this repository. Nothing about you is sent.
 - The only other downloads happen once, at first launch: Python and its packages (python-build-standalone and PyPI, via uv) and the models from Hugging Face, each file checked against its expected size and SHA-256.

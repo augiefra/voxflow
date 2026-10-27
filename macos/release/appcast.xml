@@ -5,6 +5,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <title>VoxFlow</title>
     <language>fr</language>
     <item>
+      <title>VoxFlow 0.1.3</title>
+      <pubDate>Tue, 27 Oct 2026 17:19:51 GMT</pubDate>
+      <sparkle:version>0.1.3</sparkle:version>
+      <sparkle:shortVersionString>0.1.3</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Le menu de VoxFlow garde tes 5 dernières dictées. Si un collage est parti ailleurs parce que tu as cliqué à côté, clique dans le bon champ puis choisis la dictée dans « Dernières dictées » : elle est collée et reste dans le presse-papier. Elles restent en mémoire seulement, jamais sur le disque. Et la bulle « Appris » ne disparaît plus quand tu enchaînes une autre dictée juste après une correction : elle s&#x27;affiche à la fin de celle-ci.</p><p>The VoxFlow menu keeps your last five dictations. If a paste went to the wrong place because you clicked elsewhere, click the right field and pick the dictation under Recent Dictations: it is pasted and left on the clipboard. They stay in memory only, never on disk. And the “Learned” bubble no longer vanishes when you start another dictation right after a correction: it shows once that dictation ends.</p>]]></description>
+      <enclosure url="https://github.com/augiefra/voxflow/releases/download/v0.1.3/VoxFlow-0.1.3.dmg" type="application/octet-stream" sparkle:edSignature="S6fwXV/B/jp9wfaW/YUY0UW4DmeEQf1m9q9vVeC9/7iZNO4qgE1ms1alrCke3HC5ftPtlay8ZBtNNfs21Rh7Dg==" length="19315898"></enclosure>
+    </item>
+    <item>
       <title>VoxFlow 0.1.2</title>
       <pubDate>Sat, 24 Oct 2026 18:57:20 GMT</pubDate>
       <sparkle:version>0.1.2</sparkle:version>
@@ -33,6 +42,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 5sugM92E0U2VNlwBAELsoSh+BJQQAmM3awcSkV0TcalOwzbP6WLddse5u75aCMQN+NtBMDAMwGUiZqz7qJhiDw==
-length: 4590
+edSignature: /0NUD09RSTSUD9mHGLBLNLL4uG09bTB7Iddo+E1FZfftGPMZcKzOgL5qL/6Lawf9RcP0V5ytAkfPcQJG1E3IBg==
+length: 6099
 -->

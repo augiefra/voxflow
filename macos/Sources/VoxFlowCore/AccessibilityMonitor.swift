@@ -109,6 +109,15 @@ public final class TextInjector {
         }
     }
 
+    /// Recollage depuis le menu : `text` reste dans le presse-papier (pour ⌘V ailleurs),
+    /// puis Cmd+V le colle dans le champ actif, une fois le menu refermé.
+    public func pasteAndKeep(_ text: String, after delay: TimeInterval = 0.15) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { Self.postCommandV() }
+    }
+
     private static func snapshot(_ pasteboard: NSPasteboard) -> [NSPasteboardItem] {
         (pasteboard.pasteboardItems ?? []).map { original in
             let copy = NSPasteboardItem()

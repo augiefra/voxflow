@@ -83,6 +83,9 @@
 "menu.checkUpdates" = "Check for Updates…";
 "menu.globeKey" = "⚠︎ 🌐 key: set it to “Do Nothing”…";
 "menu.header" = "VoxFlow — %@";
+"menu.history" = "Recent Dictations";
+"menu.history.empty" = "No dictations yet";
+"menu.history.hint" = "Click to paste into the active field (also copied)";
 "menu.hint" = "Hold %@ to dictate · Press twice for hands-free";
 "menu.lexicon" = "Learned words (%ld)";
 "menu.lexicon.empty" = "No corrections learned yet";
