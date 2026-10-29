@@ -414,6 +414,34 @@ def llm_reason(raw_text: str, entries: list[LexiconEntry]) -> str | None:
     return None
 
 
+_SENTENCE_END_RE = re.compile(r"(?<=[.!?…])\s+")
+_REPRISE_RE = _NEEDS_LLM_PATTERNS[2]
+# En dessous, la dictée part entière au LLM : découper ne ferait rien gagner.
+SEGMENT_MIN_SENTENCES = 3
+
+
+def split_sentences(text: str) -> list[str]:
+    return [s for s in _SENTENCE_END_RE.split(text.strip()) if s]
+
+
+def plan_segments(sentences: list[str], needs_llm: list[bool]) -> list[tuple[str, bool]]:
+    """Regroupe les phrases en segments (texte, passe par le LLM). Le LLM génère chaque mot
+    qu'il rend : seules les phrases à nettoyer lui sont confiées, les autres sont gardées
+    telles quelles. Une reprise (« Non, pardon, mercredi ») emmène la phrase qui la précède,
+    qu'elle corrige peut-être ; les phrases voisines à nettoyer partent ensemble."""
+    flags = list(needs_llm)
+    for i, sentence in enumerate(sentences):
+        if flags[i] and i > 0 and _REPRISE_RE.search(sentence):
+            flags[i - 1] = True
+    segments: list[tuple[str, bool]] = []
+    for sentence, flag in zip(sentences, flags):
+        if segments and segments[-1][1] == flag:
+            segments[-1] = (f"{segments[-1][0]} {sentence}", flag)
+        else:
+            segments.append((sentence, flag))
+    return segments
+
+
 def french_typography(text: str) -> str:
     """Espace avant ? ! ; et : (hors URL et heures), majuscule initiale."""
     text = re.sub(r"\s*([?!;]+)(?=\s|$)", r" \1", text)
@@ -723,24 +751,52 @@ class DictationService:
         reason = llm_reason(pre, entries)
         if reason is None:
             return french_typography(pre), terms, timings, "évité"
-        messages = build_messages(pre, entries)
-        max_tokens = min(4096, int(self.engines.count_tokens(pre) * 1.6) + 64)
+
+        sentences = split_sentences(pre)
+        if len(sentences) < SEGMENT_MIN_SENTENCES:
+            segments = [(pre, True)]
+        else:
+            needs = []
+            for sentence in sentences:
+                found = self.lexicon.select(sentence, bundle_id)
+                needs.append(llm_reason(sentence, found) is not None)
+            segments = plan_segments(sentences, needs)
+        sent = [text for text, flag in segments if flag]
+        timings["llm_chars"] = sum(len(text) for text in sent)
+
         t1 = time.perf_counter()
+        parts = []
+        for text, flag in segments:
+            if not flag:
+                parts.append(text)
+                continue
+            cleaned = await self._clean_with_llm(text, self.lexicon.select(text, bundle_id))
+            if cleaned is None:
+                cleaned = fallback_clean(text)
+                timings["fallback"] = timings.get("fallback", 0) + 1
+            parts.append(cleaned)
+        timings["llm_ms"] = round((time.perf_counter() - t1) * 1000, 1)
+        if len(segments) > 1:
+            reason += f", {len(sent)} segment(s) sur {len(sentences)} phrases"
+        cleaned = french_typography(" ".join(parts))
+        # Filet de sécurité : les règles sans ambiguïté s'appliquent aussi après le LLM.
+        cleaned = apply_deterministic(cleaned, Lexicon.safe_deterministic_rules(entries))
+        return cleaned, terms, timings, reason
+
+    async def _clean_with_llm(self, text: str, entries: list[LexiconEntry]) -> str | None:
+        """Un passage par le LLM ; None si la sortie est rejetée (nettoyage de secours)."""
+        messages = build_messages(text, entries)
+        max_tokens = min(4096, int(self.engines.count_tokens(text) * 1.6) + 64)
         try:
             output = await self.mlx.run(self.engines.complete, messages, max_tokens)
         except Exception:  # noqa: BLE001
             log.exception("Échec du LLM, nettoyage de secours")
             output = ""
-        timings["llm_ms"] = round((time.perf_counter() - t1) * 1000, 1)
-        cleaned = parse_llm_output(output, pre)
+        cleaned = parse_llm_output(output, text)
         if cleaned is None:
             log.warning("Sortie LLM rejetée (%d caractères), nettoyage de secours", len(output))
             log.debug("Sortie LLM rejetée : %r", output[:200])
-            cleaned = fallback_clean(pre)
-            timings["fallback"] = 1
-        # Filet de sécurité : les règles sans ambiguïté s'appliquent aussi après le LLM.
-        cleaned = apply_deterministic(cleaned, Lexicon.safe_deterministic_rules(entries))
-        return cleaned, terms, timings, reason
+        return cleaned
 
 
 class DictationConnection:

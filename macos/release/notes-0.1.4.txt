@@ -1,0 +1,3 @@
+Les longues dictées sont nettoyées bien plus vite. Au lieu de réécrire tout le texte pour retirer un « euh » ou un « en fait », VoxFlow ne confie plus à Qwen que les phrases à corriger et garde les autres telles quelles : une dictée de sept phrases passe d'environ 3 secondes à moins d'une seconde.
+
+Long dictations are cleaned up much faster. Instead of rewriting the whole text to remove one “um”, VoxFlow now hands Qwen only the sentences that need it and keeps the others as they are: a seven-sentence dictation goes from about 3 seconds to under one.

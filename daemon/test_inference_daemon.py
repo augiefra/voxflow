@@ -71,6 +71,54 @@ class TextTests(unittest.TestCase):
         self.assertEqual(d.fallback_clean("euh bonjour bah ça va"), "Bonjour ça va.")
 
 
+    def test_plan_segments_sends_only_sentences_to_clean(self):
+        sentences = d.split_sentences("Bonjour Julien. Le devis est parti. Euh je passe demain. À jeudi !")
+        self.assertEqual(len(sentences), 4)
+        self.assertEqual(
+            d.plan_segments(sentences, [False, False, True, False]),
+            [("Bonjour Julien. Le devis est parti.", False), ("Euh je passe demain.", True), ("À jeudi !", False)],
+        )
+
+    def test_plan_segments_keeps_the_sentence_a_reprise_corrects(self):
+        sentences = ["On livre mardi.", "Non, pardon, mercredi.", "Merci."]
+        self.assertEqual(
+            d.plan_segments(sentences, [False, True, False]),
+            [("On livre mardi. Non, pardon, mercredi.", True), ("Merci.", False)],
+        )
+
+
+class SegmentedCleanTests(unittest.IsolatedAsyncioTestCase):
+    async def test_long_dictation_sends_only_flagged_sentences(self):
+        sent = []
+
+        class Engines(d.MockEngines):
+            def complete(self, messages, max_tokens):
+                sent.append(messages[-1]["content"])
+                return super().complete(messages, max_tokens)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            service = d.DictationService(Engines(), d.Lexicon(Path(tmp) / "lexicon.db"))
+            text, _, timings, reason = await service.clean(
+                "Bonjour Julien. Le devis est parti hier. Euh je passe demain. À jeudi !", "")
+        self.assertEqual(sent, ["<transcription>Euh je passe demain.</transcription>"])
+        self.assertEqual(text, "Bonjour Julien. Le devis est parti hier. Je passe demain. À jeudi !")
+        self.assertEqual(timings["llm_chars"], len("Euh je passe demain."))
+        self.assertIn("1 segment(s) sur 4 phrases", reason)
+
+    async def test_short_dictation_goes_whole(self):
+        sent = []
+
+        class Engines(d.MockEngines):
+            def complete(self, messages, max_tokens):
+                sent.append(messages[-1]["content"])
+                return super().complete(messages, max_tokens)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            service = d.DictationService(Engines(), d.Lexicon(Path(tmp) / "lexicon.db"))
+            await service.clean("Bonjour. Euh je passe demain.", "")
+        self.assertEqual(sent, ["<transcription>Bonjour. Euh je passe demain.</transcription>"])
+
+
 class LexiconTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

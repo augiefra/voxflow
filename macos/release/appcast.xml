@@ -5,6 +5,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <title>VoxFlow</title>
     <language>fr</language>
     <item>
+      <title>VoxFlow 0.1.4</title>
+      <pubDate>Thu, 29 Oct 2026 15:03:05 GMT</pubDate>
+      <sparkle:version>0.1.4</sparkle:version>
+      <sparkle:shortVersionString>0.1.4</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Les longues dictées sont nettoyées bien plus vite. Au lieu de réécrire tout le texte pour retirer un « euh » ou un « en fait », VoxFlow ne confie plus à Qwen que les phrases à corriger et garde les autres telles quelles : une dictée de sept phrases passe d&#x27;environ 3 secondes à moins d&#x27;une seconde.</p><p>Long dictations are cleaned up much faster. Instead of rewriting the whole text to remove one “um”, VoxFlow now hands Qwen only the sentences that need it and keeps the others as they are: a seven-sentence dictation goes from about 3 seconds to under one.</p>]]></description>
+      <enclosure url="https://github.com/augiefra/voxflow/releases/download/v0.1.4/VoxFlow-0.1.4.dmg" type="application/octet-stream" sparkle:edSignature="wSnpL9UMZ5PbCciXvVTJcR+YW8S9knBn55gOO00G+KeOuC1MgmP4b9qO7iaukupTy6zG50j5ooF3Toa0WkxVCg==" length="19316757"></enclosure>
+    </item>
+    <item>
       <title>VoxFlow 0.1.3</title>
       <pubDate>Tue, 27 Oct 2026 17:19:51 GMT</pubDate>
       <sparkle:version>0.1.3</sparkle:version>
@@ -42,6 +51,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: /0NUD09RSTSUD9mHGLBLNLL4uG09bTB7Iddo+E1FZfftGPMZcKzOgL5qL/6Lawf9RcP0V5ytAkfPcQJG1E3IBg==
-length: 6099
+edSignature: UCQF+U062m6hdYA/AghopTxNkgcowS67BD1sJ09o355lrDSwxhJrM4dCiWvWLFGMrbncLG66TSYL/L3V6HFqDw==
+length: 7315
 -->
