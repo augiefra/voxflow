@@ -167,7 +167,7 @@ class ModelStoreTests(unittest.TestCase):
     def test_full_mode_checks_disk_once_for_both_models(self):
         progress = ms.Progress(["asr", "llm"])
         with self.assertRaises(ms.SetupError) as ctx:
-            ms.ensure_models(["asr", "llm"], progress, free_bytes=4 * 1024**3)   # assez pour Voxtral seul
+            ms.ensure_models(["asr", "llm"], progress, free_bytes=4 * 1024**3)   # assez pour la transcription et sa marge
         self.assertEqual(ctx.exception.code, "disk_full")
         self.assertGreaterEqual(ctx.exception.extra["needed_bytes"], ms.ASR.size + ms.LLM.size)
         self.assertFalse((ms.MODELS_DIR / ms.ASR.dirname).exists())   # rien téléchargé

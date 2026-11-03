@@ -127,7 +127,7 @@ final class DictationKeyTests: XCTestCase {
     func testRecommendedMode() {
         XCTAssertEqual(EngineMode.recommended(physicalMemory: 8 << 30), .light)
         XCTAssertEqual(EngineMode.recommended(physicalMemory: 16 << 30), .full)
-        XCTAssertEqual(EngineMode.full.downloadBytes, 7_444_716_257)
+        XCTAssertEqual(EngineMode.full.downloadBytes, 5_570_069_594)
         // Même seuil que le démon (15,5 Gio) : la carte Complet est désactivée en dessous.
         XCTAssertFalse(EngineMode.full.isPossible(physicalMemory: 15 << 30))
         XCTAssertTrue(EngineMode.full.isPossible(physicalMemory: 16 << 30))

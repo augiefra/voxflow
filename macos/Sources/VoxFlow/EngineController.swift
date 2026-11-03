@@ -64,7 +64,7 @@ final class EngineController: ObservableObject {
     var isReady: Bool { stage == .ready }
 
     /// Mode du démon : `mode` est le choix affiché ; tant qu'il n'est pas validé dans
-    /// l'accueil, seul Voxtral (commun aux deux modes) se télécharge.
+    /// l'accueil, seul Parakeet (commun aux deux modes) se télécharge.
     var runningMode: EngineMode { settings.runningMode }
     var modeConfirmed: Bool { settings.onboardingCompleted || settings.engineModeConfirmed }
 
@@ -169,7 +169,7 @@ final class EngineController: ObservableObject {
         }
     }
 
-    /// Le mode complet ajoute Qwen (4,3 Go) : depuis un mode léger qui marche, on prévient
+    /// Le mode complet ajoute Qwen (3,1 Go) : depuis un mode léger qui marche, on prévient
     /// que la dictée s'arrête le temps du téléchargement. `confirming` : un clic dans les
     /// Réglages vaut validation du mode, même avant la fin de l'accueil.
     func confirmAndSetMode(_ newMode: EngineMode, confirming: Bool = false) {
@@ -402,7 +402,7 @@ final class EngineController: ObservableObject {
         }
     }
 
-    /// « 3,1 Go sur 7,4 Go · 120 Mo/s · 2 min » pendant le téléchargement.
+    /// « 2,1 Go sur 5,6 Go · 120 Mo/s · 2 min » pendant le téléchargement.
     var detailLine: String? {
         guard stage == .downloading, bytesTotal > 0 else { return nil }
         var parts = [L10n.tr("engine.bytes", L10n.bytes(bytesDone), L10n.bytes(bytesTotal))]

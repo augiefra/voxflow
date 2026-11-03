@@ -3,7 +3,7 @@ import Carbon
 import Sparkle
 import VoxFlowCore
 
-/// Chef d'orchestre : touche de dictée -> micro -> démon (Voxtral + Qwen) -> collage ->
+/// Chef d'orchestre : touche de dictée -> micro -> démon (Parakeet + Qwen) -> collage ->
 /// surveillance des corrections -> apprentissage SQLite -> HUD.
 final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// VOXFLOW_PORT : essais en parallèle d'une version installée.
@@ -380,6 +380,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             return
         }
         listening = false
+        let stoppedAt = ProcessInfo.processInfo.systemUptime
         hud.show(.processing)
         if !revealed {
             revealed = true
@@ -393,7 +394,12 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
             guard let self else { return }
             switch result {
             case let .success(dictation):
-                self.deliver(dictation.text)
+                let elapsed = (ProcessInfo.processInfo.systemUptime - stoppedAt) * 1000
+                let tail = dictation.timings?["asr_tail_ms"] ?? 0
+                let clean = dictation.timings?["llm_ms"] ?? 0
+                AppLog.write(String(format: "Dictée : résultat reçu %.0f ms après arrêt (ASR %.0f ms, LLM %.0f ms)",
+                                    elapsed, tail, clean))
+                self.deliver(dictation.text, stoppedAt: stoppedAt)
             case let .failure(error):
                 self.fnController.setBusy(false)
                 self.hud.show(.error(error.localizedDescription))
@@ -413,7 +419,7 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if shown { hud.hide() }
     }
 
-    private func deliver(_ text: String) {
+    private func deliver(_ text: String, stoppedAt: TimeInterval) {
         guard !text.isEmpty else {
             fnController.setBusy(false)
             hud.hide()
@@ -431,6 +437,9 @@ final class AppController: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 self.watcher.begin(context: context)
             }
         }
+        // Mesure l'émission de Cmd+V, pas l'affichage effectif dans l'app cible.
+        let elapsed = (ProcessInfo.processInfo.systemUptime - stoppedAt) * 1000
+        AppLog.write(String(format: "Dictée : Cmd+V émis %.0f ms après arrêt (%d caractères)", elapsed, text.count))
     }
 
     // MARK: Barre de menu

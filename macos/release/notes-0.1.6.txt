@@ -1,0 +1,23 @@
+VoxFlow 0.1.6 — une dictée locale beaucoup plus réactive
+
+Parakeet TDT 0.6B v3 devient le moteur de transcription par défaut. Sur un corpus de 30 phrases françaises synthétiques, mesuré sur un M4 Pro avec 24 Go, le délai médian du moteur après l'arrêt passe de 1,34 s à 0,19 s, avant le collage. Ces chiffres ne prédisent pas toutes les voix ou tous les Mac.
+
+Après une période d'inactivité, les moteurs sont réveillés dès le début de l'écoute, pendant que tu parles. Les pauses permettent aussi de transcrire plus tôt, sans lancer de travail périodique lorsque l'app reste inutilisée.
+
+Qwen3.5 ne nettoie que les passages qui en ont besoin, avec un budget partagé d'environ 1,5 s et un arrêt effectif de la génération si le budget est atteint. Les hésitations simples sont retirées localement ; les prénoms, mots cités et répétitions volontaires sont mieux préservés.
+
+Le lexique tient mieux compte des variantes phonétiques. L'apprentissage automatique de tes corrections et la confirmation verte « Appris : … » restent présents. Les filtres existants s'appliquent toujours, notamment aux réécritures de titres courts ; le menu « Lexique appris » permet de vérifier les règles enregistrées.
+
+Important pour la mise à jour : le nouveau moteur Parakeet représente environ 2,51 Go à télécharger une fois. Le mode complet utilise Qwen3.5 et représente environ 5,57 Go de modèles au total. Les anciens modèles ne sont pas supprimés automatiquement. Tout le traitement de la dictée reste sur le Mac, sans compte et sans envoi d'audio.
+
+VoxFlow 0.1.6 — faster private dictation on your Mac
+
+Parakeet TDT 0.6B v3 is the new default speech engine. Across 30 synthetic French clips on an M4 Pro with 24 GB, median engine time after recording stops went from 1.34 s to 0.19 s, before paste. Results vary with speech and hardware.
+
+After inactivity, the engines wake as soon as dictation starts, while audio continues to arrive. Clear pauses allow earlier transcription, with no periodic inference when the app is idle.
+
+Qwen3.5 cleanup is more selective, shares an approximately 1.5-second budget across the dictation, and actually stops generation when the budget expires. Simple fillers are removed locally, while names, quoted words and intentional emphasis are better preserved.
+
+Learned vocabulary handles phonetic variants more reliably. Correction learning and the green “Learned” confirmation remain available, with their existing filters; replacing most of a short title can still be ignored. Check the menu to confirm saved rules.
+
+This update downloads the new Parakeet model once (about 2.51 GB). Full mode uses Qwen3.5, for about 5.57 GB of models in total. Previous models are retained. Dictation stays entirely on your Mac, with no account and no audio upload.

@@ -20,7 +20,7 @@ final class SnapshotDemo: NSObject, NSApplicationDelegate {
         settings.engineModeConfirmed = true // états d'une installation dont le mode est choisi
         let engine = EngineController(manager: DaemonManager(daemonDirectory: nil), client: InferenceClient(port: 1), settings: settings)
         let model = OnboardingModel(engine: engine, settings: settings)
-        let downloading = { engine.simulate(.downloading, fraction: 0.42, done: 3_080_000_000, total: 7_444_716_257,
+        let downloading = { engine.simulate(.downloading, fraction: 0.42, done: 2_000_000_000, total: 4_679_762_673,
                                             speed: 118_000_000, eta: 37) }
 
         for (name, appearance) in [("clair", NSAppearance.Name.aqua), ("sombre", .darkAqua)] {

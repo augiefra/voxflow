@@ -1,0 +1,98 @@
+[
+  {
+    "case": "voix_faible",
+    "text": "Bonjour Julien, je te rappelle demain matin.",
+    "ms": 38.9
+  },
+  {
+    "case": "silence",
+    "text": "",
+    "ms": 0.1
+  },
+  {
+    "case": "bruit_faible",
+    "text": "",
+    "ms": 40.8
+  },
+  {
+    "case": "bruit_piece",
+    "text": "",
+    "ms": 33.9
+  },
+  {
+    "case": "budget_long",
+    "ms": 1579.2,
+    "timings": {
+      "lexicon_ms": 63.2,
+      "llm_chars": 3893,
+      "budget_exceeded": 1,
+      "fallback": 1,
+      "llm_ms": 1515.5
+    },
+    "llm": "motif « Du coup »",
+    "text": "(texte long conservé)",
+    "unchanged": false,
+    "same_words": true
+  },
+  {
+    "case": "apres_interruption",
+    "ms": 396.5,
+    "timings": {
+      "lexicon_ms": 1.1,
+      "llm_chars": 43,
+      "llm_ms": 395.3
+    },
+    "llm": "motif « non pardon »",
+    "text": "Je passe mercredi matin.",
+    "unchanged": false,
+    "same_words": false
+  },
+  {
+    "case": "prenom",
+    "ms": 0.9,
+    "timings": {
+      "lexicon_ms": 0.9
+    },
+    "llm": "évité",
+    "text": "Ben vient dîner ce soir avec Julie.",
+    "unchanged": true,
+    "same_words": true
+  },
+  {
+    "case": "prenom_avec_reprise",
+    "ms": 427.4,
+    "timings": {
+      "lexicon_ms": 0.8,
+      "llm_chars": 43,
+      "llm_ms": 426.5
+    },
+    "llm": "motif « non pardon »",
+    "text": "Ben vient, Ben arrivera demain.",
+    "unchanged": false,
+    "same_words": false
+  },
+  {
+    "case": "mot_cite",
+    "ms": 1.8,
+    "timings": {
+      "lexicon_ms": 1.8
+    },
+    "llm": "évité",
+    "text": "Le mot « euh » est une hésitation.",
+    "unchanged": true,
+    "same_words": true
+  },
+  {
+    "case": "lexique",
+    "ms": 518.3,
+    "timings": {
+      "lexicon_ms": 1.4,
+      "llm_chars": 53,
+      "llm_ms": 515.3
+    },
+    "llm": "dictionnaire contextuel « Allauch »",
+    "text": "Je travaille sur FacilAbo avec Eric Cologni à Allauch.",
+    "unchanged": false,
+    "same_words": false
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "version": "0.1.6",
+  "mode": "full",
+  "status": "ready",
+  "daemon_sha256": "28254bb77cea3c55023f09822ebf565d4e8a142c9d9c88fad2cb73d092ff43f6",
+  "idle_seconds_before_first_case": 35,
+  "scope": "WebSocket réel vers app installée, avant collage",
+  "rows": [
+    {
+      "case": "court",
+      "received_ms": 91.7,
+      "expected_text_or_repair": true,
+      "timings": {
+        "lexicon_ms": 2.9,
+        "audio_s": 2.93,
+        "asr_tail_ms": 78.7,
+        "release_ms": 5.5,
+        "wake_during_audio_ms": 924.1,
+        "total_after_stop_ms": 87.3
+      }
+    },
+    {
+      "case": "court",
+      "received_ms": 198.0,
+      "expected_text_or_repair": true,
+      "timings": {
+        "lexicon_ms": 0.6,
+        "audio_s": 2.93,
+        "asr_tail_ms": 194.8,
+        "release_ms": 1.5,
+        "wake_during_audio_ms": 0.0,
+        "total_after_stop_ms": 197.0
+      }
+    },
+    {
+      "case": "reprise",
+      "received_ms": 687.5,
+      "expected_text_or_repair": true,
+      "timings": {
+        "lexicon_ms": 2.2,
+        "llm_chars": 69,
+        "llm_ms": 461.3,
+        "audio_s": 5.38,
+        "asr_tail_ms": 221.0,
+        "release_ms": 2.0,
+        "wake_during_audio_ms": 0.0,
+        "total_after_stop_ms": 686.6
+      }
+    },
+    {
+      "case": "pause",
+      "received_ms": 180.2,
+      "expected_text_or_repair": true,
+      "timings": {
+        "lexicon_ms": 1.0,
+        "audio_s": 6.79,
+        "asr_tail_ms": 174.7,
+        "release_ms": 3.6,
+        "wake_during_audio_ms": 0.0,
+        "total_after_stop_ms": 179.4
+      }
+    }
+  ]
+}

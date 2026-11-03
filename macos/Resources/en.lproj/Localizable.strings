@@ -5,7 +5,7 @@
 "a11y.locked" = "Hands-free listening";
 "a11y.processing" = "AI formatting";
 "a11y.stopHint" = "Press your key to finish";
-"about.credits" = "Private dictation that runs entirely on this Mac.\n\nVoxtral Mini 4B Realtime, Mistral AI\nQwen2.5-Coder 7B Instruct, Alibaba Cloud\nApache 2.0 license, run with MLX\nUpdates: Sparkle\n\nDetails: “Third-Party Licenses…” menu";
+"about.credits" = "Private dictation that runs entirely on this Mac.\n\nParakeet TDT v3, NVIDIA (CC BY 4.0 license)\nQwen3.5 4B, Alibaba Cloud (Apache 2.0 license)\nRun with MLX\nUpdates: Sparkle\n\nDetails: “Third-Party Licenses…” menu";
 "engine.autoRetry" = "VoxFlow will try again on its own in a few minutes.";
 "engine.bytes" = "%1$@ of %2$@";
 "engine.copyLog" = "Copy Log";
@@ -110,7 +110,7 @@
 "onboarding.back" = "Back";
 "onboarding.background" = "%@ · in the background";
 "onboarding.engines.footnote" = "This Mac: %1$@ of memory · %2$@ free";
-"onboarding.engines.subtitle" = "They run on your Mac and work offline once downloaded. Voxtral, used by both, is already downloading; Qwen only downloads if you choose Full. You can switch later in Settings.";
+"onboarding.engines.subtitle" = "They run on your Mac and work offline once downloaded. Parakeet (speech to text), used by both, is already downloading; Qwen only downloads if you choose Full. You can switch later in Settings.";
 "onboarding.engines.title" = "Choose your engines";
 "onboarding.finish" = "Done";
 "onboarding.key.detected" = "Key detected: %@ ✓";

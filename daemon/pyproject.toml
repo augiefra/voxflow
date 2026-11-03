@@ -1,7 +1,7 @@
 [project]
 name = "voxflow-daemon"
 version = "0.1.0"
-description = "Démon local MLX : Voxtral (ASR) + Qwen (nettoyage) pour VoxFlow"
+description = "Démon local MLX : Parakeet (ASR) + Qwen (nettoyage) pour VoxFlow"
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "mlx-audio[stt]>=0.6.1",

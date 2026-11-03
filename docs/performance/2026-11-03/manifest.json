@@ -1,0 +1,152 @@
+[
+  {
+    "name": "court",
+    "audio": "court.wav",
+    "reference": "Bonjour Julien, je te rappelle demain matin."
+  },
+  {
+    "name": "message",
+    "audio": "message.wav",
+    "reference": "Peux-tu vérifier le devis et me confirmer le montant avant vendredi ?"
+  },
+  {
+    "name": "noms",
+    "audio": "noms.wav",
+    "reference": "Je travaille sur FacilAbo et EuroVolt avec Eric Cologni à Allauch."
+  },
+  {
+    "name": "reprise",
+    "audio": "reprise.wav",
+    "reference": "Euh, je passe mardi, non pardon, mercredi matin pour récupérer le dossier."
+  },
+  {
+    "name": "pause",
+    "audio": "pause.wav",
+    "reference": "Le devis est parti ce matin.  Tu peux le relire avant demain.  Merci Julien, bonne journée."
+  },
+  {
+    "name": "long",
+    "audio": "long.wav",
+    "reference": "Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à quinze heures avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée."
+  },
+  {
+    "name": "merci",
+    "audio": "merci.wav",
+    "reference": "Merci pour ton aide, je viens de recevoir les documents."
+  },
+  {
+    "name": "question",
+    "audio": "question.wav",
+    "reference": "Est-ce que tu peux déplacer notre rendez-vous à jeudi après-midi ?"
+  },
+  {
+    "name": "montant",
+    "audio": "montant.wav",
+    "reference": "Le montant total est de mille deux cent cinquante euros hors taxes."
+  },
+  {
+    "name": "horaire",
+    "audio": "horaire.wav",
+    "reference": "La réunion commence à neuf heures trente et se termine à onze heures."
+  },
+  {
+    "name": "date",
+    "audio": "date.wav",
+    "reference": "Nous sommes le trois novembre deux mille vingt-six."
+  },
+  {
+    "name": "liste",
+    "audio": "liste.wav",
+    "reference": "Il faut acheter du pain, du lait, des pommes et deux bouteilles d'eau."
+  },
+  {
+    "name": "hesitation",
+    "audio": "hesitation.wav",
+    "reference": "Euh, je voulais te dire que le dossier est prêt. Hum, tu peux passer demain."
+  },
+  {
+    "name": "correction",
+    "audio": "correction.wav",
+    "reference": "Réserve deux places, enfin non, trois places pour vendredi soir."
+  },
+  {
+    "name": "repetition",
+    "audio": "repetition.wav",
+    "reference": "Je je voulais vérifier que tu avais bien reçu mon message."
+  },
+  {
+    "name": "intensite",
+    "audio": "intensite.wav",
+    "reference": "C'est très très important de conserver la dernière version du document."
+  },
+  {
+    "name": "genre",
+    "audio": "genre.wav",
+    "reference": "Ce genre de problème demande une vérification avant de relancer le service."
+  },
+  {
+    "name": "en_fait",
+    "audio": "en_fait.wav",
+    "reference": "Le client habite en fait à Marseille depuis plusieurs années."
+  },
+  {
+    "name": "prenom",
+    "audio": "prenom.wav",
+    "reference": "Ben vient dîner ce soir avec Julie et Nicolas."
+  },
+  {
+    "name": "telephone",
+    "audio": "telephone.wav",
+    "reference": "Allô, tu m'entends ? Je te rappelle dans cinq minutes."
+  },
+  {
+    "name": "lieu",
+    "audio": "lieu.wav",
+    "reference": "On se retrouve à Allauch demain matin pour prendre un café."
+  },
+  {
+    "name": "projet",
+    "audio": "projet.wav",
+    "reference": "La prochaine version de FacilAbo corrige le problème de synchronisation."
+  },
+  {
+    "name": "energie",
+    "audio": "energie.wav",
+    "reference": "EuroVolt affiche maintenant la consommation électrique de la semaine."
+  },
+  {
+    "name": "technique",
+    "audio": "technique.wav",
+    "reference": "Vérifie la requête de l'API et le fichier de configuration du serveur."
+  },
+  {
+    "name": "anglais",
+    "audio": "anglais.wav",
+    "reference": "Le pull request est prêt pour la code review et les tests passent."
+  },
+  {
+    "name": "ordre",
+    "audio": "ordre.wav",
+    "reference": "Écris-moi un mail pour annuler le rendez-vous de demain."
+  },
+  {
+    "name": "question_dictee",
+    "audio": "question_dictee.wav",
+    "reference": "Quelle est la capitale de la France et combien de personnes y vivent ?"
+  },
+  {
+    "name": "negation",
+    "audio": "negation.wav",
+    "reference": "Je ne veux surtout pas supprimer les changements déjà présents."
+  },
+  {
+    "name": "pause_reprise",
+    "audio": "pause_reprise.wav",
+    "reference": "Nous livrons mardi.  Non, pardon, mercredi.  Préviens le client."
+  },
+  {
+    "name": "paragraphes",
+    "audio": "paragraphes.wav",
+    "reference": "Bonjour Sophie.  Merci pour ton retour sur le devis.  Nous pouvons confirmer la commande et prévoir une livraison la semaine prochaine.  Bonne journée et à bientôt."
+  }
+]

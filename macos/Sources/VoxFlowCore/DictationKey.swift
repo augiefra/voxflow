@@ -144,8 +144,8 @@ public final class VoxFlowSettings {
         set { defaults.set(newValue, forKey: "onboardingCompleted") }
     }
 
-    /// Mode validé dans l'accueil (page Moteurs). Avant, seul Voxtral se télécharge :
-    /// Qwen (4,3 Go) attend que l'utilisateur ait choisi le mode complet.
+    /// Mode validé dans l'accueil (page Moteurs). Avant, seule la transcription (Parakeet) se télécharge :
+    /// Qwen (3,1 Go) attend que l'utilisateur ait choisi le mode complet.
     public var engineModeConfirmed: Bool {
         get { defaults.bool(forKey: "engineModeConfirmed") }
         set { defaults.set(newValue, forKey: "engineModeConfirmed") }
@@ -171,16 +171,16 @@ public final class VoxFlowSettings {
     }
 }
 
-/// Complet : Voxtral + Qwen (mise en forme par IA). Léger : Voxtral seul (`--no-llm`).
+/// Complet : Parakeet + Qwen (mise en forme par IA). Léger : Parakeet seul (`--no-llm`).
 public enum EngineMode: String, CaseIterable, Codable {
     case full
     case light
 
     /// Octets à télécharger (révisions figées dans daemon/model_store.py).
-    public var downloadBytes: Int64 { self == .full ? 3_148_828_619 + 4_295_887_638 : 3_148_828_619 }
+    public var downloadBytes: Int64 { self == .full ? 2_508_940_517 + 3_061_129_077 : 2_508_940_517 }
 
-    /// Le mode complet monte à ~9 Gio de mémoire (mesuré sur M4 Pro) : le démon le refuse
-    /// sous 16 Go (seuil 15,5 Gio, daemon/model_store.py `check_machine`).
+    /// Seuil conservateur partagé avec le démon (15,5 Gio, `check_machine`) ;
+    /// les performances sur des Mac avec moins de 16 Go ne sont pas validées.
     public static let fullMinimumMemory: UInt64 = 31 << 29
 
     public static func recommended(physicalMemory: UInt64 = ProcessInfo.processInfo.physicalMemory) -> EngineMode {

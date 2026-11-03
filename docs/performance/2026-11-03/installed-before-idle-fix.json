@@ -1,0 +1,64 @@
+[
+  {
+    "case": "court",
+    "received_ms": 898.3,
+    "non_empty": true,
+    "timings": {
+      "lexicon_ms": 1.8,
+      "audio_s": 2.93,
+      "asr_tail_ms": 892.7,
+      "release_ms": 1.6,
+      "total_after_stop_ms": 896.1
+    }
+  },
+  {
+    "case": "court",
+    "received_ms": 190.7,
+    "non_empty": true,
+    "timings": {
+      "lexicon_ms": 0.6,
+      "audio_s": 2.93,
+      "asr_tail_ms": 187.3,
+      "release_ms": 1.6,
+      "total_after_stop_ms": 189.6
+    }
+  },
+  {
+    "case": "message",
+    "received_ms": 189.9,
+    "non_empty": true,
+    "timings": {
+      "lexicon_ms": 1.2,
+      "audio_s": 3.58,
+      "asr_tail_ms": 185.4,
+      "release_ms": 1.6,
+      "total_after_stop_ms": 189.1
+    }
+  },
+  {
+    "case": "reprise",
+    "received_ms": 880.6,
+    "non_empty": true,
+    "timings": {
+      "lexicon_ms": 1.4,
+      "llm_chars": 69,
+      "llm_ms": 647.3,
+      "audio_s": 5.38,
+      "asr_tail_ms": 228.7,
+      "release_ms": 2.2,
+      "total_after_stop_ms": 879.6
+    }
+  },
+  {
+    "case": "pause",
+    "received_ms": 211.2,
+    "non_empty": true,
+    "timings": {
+      "lexicon_ms": 0.9,
+      "audio_s": 6.79,
+      "asr_tail_ms": 203.8,
+      "release_ms": 3.5,
+      "total_after_stop_ms": 208.3
+    }
+  }
+]

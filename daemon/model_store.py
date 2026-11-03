@@ -63,14 +63,14 @@ class ModelSpec:
         return MODELS_DIR / self.dirname
 
 
-ASR = ModelSpec("asr", "mlx-community/Voxtral-Mini-4B-Realtime-2602-4bit",
-                "Voxtral Mini 4B (transcription)", ASR_PATTERNS,
-                ("config.json", "model.safetensors", "tekken.json"),
-                "fdebf7b2af834a1db4b8a3c99ab7480b333adf9e", 3_148_828_619)
-LLM = ModelSpec("llm", "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
-                "Qwen2.5 Coder 7B (nettoyage du texte)", LLM_PATTERNS,
+ASR = ModelSpec("asr", "mlx-community/parakeet-tdt-0.6b-v3",
+                "Parakeet TDT v3 (transcription)", ASR_PATTERNS,
+                ("config.json", "model.safetensors", "tokenizer.model"),
+                "ed2b7e8c15f9aaa0b5772e2efb986255eaef7e15", 2_508_940_517)
+LLM = ModelSpec("llm", "mlx-community/Qwen3.5-4B-MLX-4bit",
+                "Qwen3.5 4B (nettoyage du texte)", LLM_PATTERNS,
                 ("config.json", "model.safetensors", "tokenizer.json", "tokenizer_config.json"),
-                "019cc73c45c770444708a6dd8690c66243cc5c80", 4_295_887_638)
+                "32f3e8ecf65426fc3306969496342d504bfa13f3", 3_061_129_077)
 SPECS = {s.key: s for s in (ASR, LLM)}
 
 
@@ -479,7 +479,7 @@ def _bytes_on_disk(spec: ModelSpec) -> int:
 
 def check_disk(specs: list[ModelSpec], free_bytes: int | None = None) -> None:
     """Contrôle unique avant de commencer : en mode complet, le manque de place pour Qwen ne
-    doit pas apparaître après les 3 Go de Voxtral. Estimation d'après les tailles figées ;
+    doit pas apparaître après le téléchargement du modèle de transcription. Estimation d'après les tailles figées ;
     ensure_model refait le compte exact, fichier par fichier, pour chaque modèle."""
     if not specs:
         return

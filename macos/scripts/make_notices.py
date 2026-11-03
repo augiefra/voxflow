@@ -26,14 +26,42 @@ Distribution python-build-standalone, Astral
 MODELS = """\
 MODÈLES (téléchargés depuis Hugging Face au premier lancement, non inclus dans l'app)
 
-Voxtral Mini 4B Realtime (2602), Mistral AI
+Parakeet TDT 0.6B v3, NVIDIA
+  https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+  Conversion MLX : https://huggingface.co/mlx-community/parakeet-tdt-0.6b-v3/tree/ed2b7e8c15f9aaa0b5772e2efb986255eaef7e15
+  Licence : CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/ ; texte complet ci-après)
+  Modifications : poids convertis au format MLX par mlx-community.
+
+Whisper large-v3-turbo, OpenAI (moteur ASR optionnel)
+  https://huggingface.co/openai/whisper-large-v3-turbo
+  Conversion MLX : https://huggingface.co/mlx-community/whisper-large-v3-turbo-asr-fp16
+  Licence : MIT
+
+  Copyright (c) 2022 OpenAI
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+  and associated documentation files (the "Software"), to deal in the Software without
+  restriction, including without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all copies or
+  substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+  BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Voxtral Mini 4B Realtime (2602), Mistral AI (moteur ASR optionnel)
   https://huggingface.co/mistralai/Voxtral-Mini-4B-Realtime-2602
   Conversion 4 bits MLX : https://huggingface.co/mlx-community/Voxtral-Mini-4B-Realtime-2602-4bit
   Licence : Apache License 2.0 (texte complet en fin de fichier)
 
-Qwen2.5-Coder-7B-Instruct, équipe Qwen (Alibaba Cloud)
-  https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct
-  Conversion 4 bits MLX : https://huggingface.co/mlx-community/Qwen2.5-Coder-7B-Instruct-4bit
+Qwen3.5-4B, équipe Qwen (Alibaba Cloud)
+  https://huggingface.co/Qwen/Qwen3.5-4B
+  Conversion 4 bits MLX : https://huggingface.co/mlx-community/Qwen3.5-4B-MLX-4bit
   Licence : Apache License 2.0 (texte complet en fin de fichier)
 """
 
@@ -60,12 +88,15 @@ def package_entries(site_packages: Path) -> list[str]:
 def main() -> None:
     site_packages, sparkle_license, uv_dir, output = map(Path, sys.argv[1:5])
     licenses = Path(__file__).resolve().parent.parent / "Resources/licenses"
+    cc_by = (licenses / "CC-BY-4.0.txt").read_text().strip()
     apache = (licenses / "Apache-2.0.txt").read_text().strip()
     crates = licenses / "uv-crates.txt"
     parts = [
         "VoxFlow — composants tiers et licences",
         "VoxFlow s'appuie sur les travaux suivants. Merci à leurs auteurs.",
         RULE, MODELS,
+        RULE, "CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL (Parakeet TDT 0.6B v3)\n\n"
+              + cc_by,
         RULE, "SPARKLE (inclus dans l'app : mises à jour automatiques)\nhttps://sparkle-project.org\n\n"
               + sparkle_license.read_text().strip(),
         RULE, "UV, Astral (inclus dans l'app : installe Python et les paquets du démon)\n"
@@ -78,7 +109,7 @@ def main() -> None:
     ]
     for entry in package_entries(site_packages):
         parts += ["-" * 78, entry]
-    parts += [RULE, "APACHE LICENSE 2.0 (Voxtral, Qwen2.5-Coder, uv et paquets sous Apache 2.0)\n\n" + apache]
+    parts += [RULE, "APACHE LICENSE 2.0 (Voxtral, Qwen3.5, uv et paquets sous Apache 2.0)\n\n" + apache]
     output.write_text("\n\n".join(parts) + "\n")
     print(f"{output} : {output.stat().st_size // 1024} Ko")
 

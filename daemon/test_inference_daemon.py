@@ -6,8 +6,11 @@ import logging
 import os
 import sqlite3
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 from websockets.asyncio.client import connect
@@ -61,6 +64,14 @@ class TextTests(unittest.TestCase):
         facilabo = d.LexiconEntry("FacilAbo", ["Facilabo"], matched=True)
         self.assertIsNone(d.llm_reason("Facilabo est en ligne.", [facilabo]))
 
+    def test_lexicon_gate_catches_unresolved_phonetic_variants(self):
+        entry = d.LexiconEntry("FacilAbo", ["facil a beau"], matched=True)
+        self.assertIsNotNone(d.llm_reason("Je travaille sur Facile Abo.", [entry]))
+        self.assertIsNone(d.llm_reason("Je travaille sur FacilAbo.", [entry]))
+        ambiguous = d.LexiconEntry("Allauch", ["Allo"], matched=True)
+        self.assertIsNone(d.llm_reason("Je passe à Allauch.", [ambiguous]))
+        self.assertIsNotNone(d.llm_reason("On parle d'Allauch et on entend Allo.", [ambiguous]))
+
     def test_french_typography(self):
         self.assertEqual(d.french_typography("Tu viens?Oui!"), "Tu viens?Oui !")
         self.assertEqual(d.french_typography("ça va? oui"), "Ça va ? oui")
@@ -68,7 +79,21 @@ class TextTests(unittest.TestCase):
                          "Voir https://a.fr/x?y=1 à 15:30. Note : ok")
 
     def test_fallback_clean(self):
-        self.assertEqual(d.fallback_clean("euh bonjour bah ça va"), "Bonjour ça va.")
+        self.assertEqual(d.fallback_clean("euh bonjour ça va"), "Bonjour ça va.")
+        self.assertEqual(d.fallback_clean("Ben vient dîner ce soir"), "Ben vient dîner ce soir.")
+        self.assertEqual(d.fallback_clean("Ce genre de cas existe en fait souvent"),
+                         "Ce genre de cas existe en fait souvent.")
+
+    def test_literal_hesitation_is_preserved(self):
+        for quoted in ['"euh"', '« euh »', '“hum”', '`heu`']:
+            text = f"Le mot {quoted} est une hésitation."
+            self.assertEqual(d.remove_simple_fillers(text), text)
+            self.assertIsNone(d.llm_reason(text, []))
+
+    def test_meaningful_words_and_emphasis_do_not_trigger_cleanup(self):
+        for text in ["Ben vient dîner ce soir.", "Ce genre de problème existe.",
+                     "Le client habite en fait à Marseille.", "C'est très très important.", "Oui oui, je viens."]:
+            self.assertIsNone(d.llm_reason(text, []), text)
 
 
     def test_plan_segments_sends_only_sentences_to_clean(self):
@@ -92,31 +117,240 @@ class SegmentedCleanTests(unittest.IsolatedAsyncioTestCase):
         sent = []
 
         class Engines(d.MockEngines):
-            def complete(self, messages, max_tokens):
+            def complete(self, messages, max_tokens, **kwargs):
                 sent.append(messages[-1]["content"])
-                return super().complete(messages, max_tokens)
+                return "<texte_nettoye>Je passe demain.</texte_nettoye>"
 
         with tempfile.TemporaryDirectory() as tmp:
             service = d.DictationService(Engines(), d.Lexicon(Path(tmp) / "lexicon.db"))
             text, _, timings, reason = await service.clean(
-                "Bonjour Julien. Le devis est parti hier. Euh je passe demain. À jeudi !", "")
-        self.assertEqual(sent, ["<transcription>Euh je passe demain.</transcription>"])
+                "Bonjour Julien. Le devis est parti hier. Je je passe demain. À jeudi !", "")
+        self.assertEqual(sent, ["<transcription>Je je passe demain.</transcription>"])
         self.assertEqual(text, "Bonjour Julien. Le devis est parti hier. Je passe demain. À jeudi !")
-        self.assertEqual(timings["llm_chars"], len("Euh je passe demain."))
+        self.assertEqual(timings["llm_chars"], len("Je je passe demain."))
         self.assertIn("1 segment(s) sur 4 phrases", reason)
 
     async def test_short_dictation_goes_whole(self):
         sent = []
 
         class Engines(d.MockEngines):
-            def complete(self, messages, max_tokens):
+            def complete(self, messages, max_tokens, **kwargs):
                 sent.append(messages[-1]["content"])
-                return super().complete(messages, max_tokens)
+                return super().complete(messages, max_tokens, **kwargs)
 
         with tempfile.TemporaryDirectory() as tmp:
             service = d.DictationService(Engines(), d.Lexicon(Path(tmp) / "lexicon.db"))
-            await service.clean("Bonjour. Euh je passe demain.", "")
-        self.assertEqual(sent, ["<transcription>Bonjour. Euh je passe demain.</transcription>"])
+            await service.clean("Bonjour. Je je passe demain.", "")
+        self.assertEqual(sent, ["<transcription>Bonjour. Je je passe demain.</transcription>"])
+
+    async def test_simple_hesitation_needs_no_generation(self):
+        sent = []
+
+        class Engines(d.MockEngines):
+            def complete(self, *args, **kwargs):
+                sent.append(True)
+                return super().complete(*args, **kwargs)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            service = d.DictationService(Engines(), d.Lexicon(Path(tmp) / "lexicon.db"))
+            text, _, timings, reason = await service.clean("Euh, je passe demain. Hum, à jeudi !", "")
+        self.assertEqual(text, "Je passe demain. À jeudi !")
+        self.assertEqual(sent, [])
+        self.assertEqual(reason, "évité")
+        self.assertNotIn("llm_ms", timings)
+
+    async def test_budget_is_shared_and_worker_is_free_before_returning(self):
+        calls = []
+
+        class SlowEngines(d.MockEngines):
+            def complete(self, messages, max_tokens, *, deadline=None):
+                calls.append(messages[-1]["content"])
+                while time.perf_counter() < deadline:
+                    time.sleep(0.001)
+                raise d.GenerationBudgetExceeded()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            service = d.DictationService(SlowEngines(), d.Lexicon(Path(tmp) / "lexicon.db"), llm_budget_s=0.02)
+            start = time.perf_counter()
+            text, _, timings, _ = await service.clean(
+                "Je je passe demain. Le devis est validé. Je je rappelle jeudi.", "")
+            self.assertEqual(await service.mlx.run(lambda: "worker libre"), "worker libre")
+            service.mlx.pool.shutdown(wait=True)
+        self.assertLess(time.perf_counter() - start, 0.5)
+        self.assertEqual(len(calls), 1)  # pas un nouveau budget pour le second segment
+        self.assertEqual(timings["budget_exceeded"], 2)
+        self.assertEqual(timings["fallback"], 2)
+        self.assertEqual(text, "Je je passe demain. Le devis est validé. Je je rappelle jeudi.")
+
+
+class GenerationBudgetTests(unittest.TestCase):
+    def test_expired_budget_closes_generation_before_next_token(self):
+        state = []
+
+        def stream():
+            try:
+                yield SimpleNamespace(text="incomplet")
+                state.append("continué")
+            finally:
+                state.append("fermé")
+
+        with self.assertRaises(d.GenerationBudgetExceeded):
+            d.collect_generation(stream(), deadline=0)
+        self.assertEqual(state, ["fermé"])
+
+    def test_closing_tag_stops_generation_and_preserves_whole_result(self):
+        state = []
+
+        def stream():
+            try:
+                for text in ["<texte_nettoye>Bonjour.", "</texte_", "nettoye>"]:
+                    yield SimpleNamespace(text=text)
+                state.append("commentaire superflu")
+            finally:
+                state.append("fermé")
+
+        self.assertEqual(d.collect_generation(stream(), None), "<texte_nettoye>Bonjour.</texte_nettoye>")
+        self.assertEqual(state, ["fermé"])
+
+
+class WakeDuringAudioTests(unittest.IsolatedAsyncioTestCase):
+    async def test_audio_keeps_arriving_while_the_worker_wakes(self):
+        class Engines(d.MockEngines):
+            def __init__(self):
+                self.started = threading.Event()
+                self.finished = threading.Event()
+
+            def wake_if_idle(self):
+                self.started.set()
+                time.sleep(0.05)
+                self.finished.set()
+                return 50.0
+
+        class Socket:
+            def __init__(self):
+                self.messages = []
+
+            async def send(self, payload):
+                self.messages.append(json.loads(payload))
+
+        with tempfile.TemporaryDirectory() as tmp:
+            engine = Engines()
+            service = d.DictationService(engine, d.Lexicon(Path(tmp) / "lexicon.db"))
+            service.status = "ready"
+            socket = Socket()
+            conn = d.DictationConnection(service, socket)
+            try:
+                await conn.start({"sample_rate": 16000})
+                for _ in range(100):
+                    if engine.started.is_set():
+                        break
+                    await asyncio.sleep(0.001)
+                self.assertTrue(engine.started.is_set())
+                conn.feed(np.zeros(d.SAMPLE_RATE, dtype="<f4").tobytes())
+                self.assertFalse(engine.finished.is_set())
+                await conn.stop()
+                final = next(m for m in socket.messages if m["type"] == "final")
+                self.assertIn("1.0 secondes", final["raw"])
+                self.assertEqual(final["timings"]["wake_during_audio_ms"], 50.0)
+            finally:
+                await conn.reset()
+                service.mlx.pool.shutdown(wait=True)
+
+
+
+class ChunkedSessionTests(unittest.TestCase):
+    class FakeWhisper:
+        def __init__(self):
+            self.calls = []
+
+        def generate(self, audio, **kwargs):
+            self.calls.append((audio.size, kwargs.get("initial_prompt")))
+            return type("R", (), {"text": f"tranche {len(self.calls)}..."})()
+
+    def speech(self, seconds):
+        return np.random.default_rng(1).normal(0, 0.1, int(seconds * d.SAMPLE_RATE)).astype(np.float32)
+
+    def test_transcribes_chunks_while_speaking_cut_on_silence(self):
+        model = self.FakeWhisper()
+        session = d.ChunkedSession(model)
+        audio = self.speech(40)
+        audio[22 * d.SAMPLE_RATE:int(22.5 * d.SAMPLE_RATE)] = 0     # pause à 22 s
+        deltas = []
+        for k in range(0, audio.size, 1600):
+            session.feed(audio[k:k + 1600])
+            deltas += session.step()
+        self.assertEqual(deltas, ["tranche 1 "])                      # points de suspension retirés
+        self.assertAlmostEqual(model.calls[0][0] / d.SAMPLE_RATE, 22.2, delta=0.3)
+        session.close()
+        deltas += session.step()
+        self.assertTrue(session.done)
+        self.assertEqual("".join(deltas), "tranche 1 tranche 2...")
+        self.assertEqual(model.calls[1][1].strip(), "tranche 1...")   # contexte de la tranche précédente
+
+    def test_silence_is_not_transcribed(self):
+        model = self.FakeWhisper()
+        session = d.ChunkedSession(model)
+        session.feed(np.zeros(3 * d.SAMPLE_RATE, dtype=np.float32))
+        session.close()
+        self.assertEqual(session.step(), [])
+        self.assertEqual(model.calls, [])
+
+    def test_short_phrase_is_decoded_during_its_pause(self):
+        model = self.FakeWhisper()
+        session = d.ChunkedSession(model, "Vocabulaire : FacilAbo.")
+        session.feed(self.speech(2))
+        self.assertEqual(session.step(), [])
+        session.feed(np.zeros(int(d.ChunkedSession.PAUSE_S * d.SAMPLE_RATE), dtype=np.float32))
+        self.assertEqual(session.step(), ["tranche 1 "])
+        self.assertFalse(session.closed)
+        self.assertIn("FacilAbo", model.calls[0][1])
+        # Terminer juste après ne relance pas une inférence sur le silence consommé.
+        session.close()
+        self.assertEqual(session.step(), [])
+        self.assertTrue(session.done)
+        self.assertEqual(len(model.calls), 1)
+
+    def test_short_silence_inside_a_word_is_not_a_boundary(self):
+        model = self.FakeWhisper()
+        session = d.ChunkedSession(model)
+        session.feed(self.speech(2))
+        session.feed(np.zeros(d.SAMPLE_RATE // 10, dtype=np.float32))
+        self.assertEqual(session.step(), [])
+        self.assertEqual(model.calls, [])
+
+    def test_quiet_speech_is_kept_and_not_mistaken_for_a_pause(self):
+        model = self.FakeWhisper()
+        session = d.ChunkedSession(model)
+        quiet = self.speech(2) * 0.005  # sous l'ancien seuil moyen fixe
+        session.feed(quiet)
+        self.assertEqual(session.step(), [])
+        session.feed(np.zeros(int(session.PAUSE_S * d.SAMPLE_RATE), dtype=np.float32))
+        self.assertEqual(session.step(), ["tranche 1 "])
+        self.assertEqual(len(model.calls), 1)
+
+    def test_backlog_at_stop_stays_bounded_and_loses_no_audio(self):
+        model = self.FakeWhisper()
+        session = d.ChunkedSession(model)
+        session.feed(self.speech(65))
+        session.close()
+        while not session.done:
+            session.step()
+        self.assertEqual(sum(size for size, _ in model.calls), 65 * d.SAMPLE_RATE)
+        self.assertTrue(all(size <= session.CHUNK_MAX_S * d.SAMPLE_RATE for size, _ in model.calls))
+
+    def test_backlog_at_stop_uses_the_quiet_boundary_too(self):
+        model = self.FakeWhisper()
+        session = d.ChunkedSession(model)
+        audio = self.speech(40)
+        audio[22 * d.SAMPLE_RATE:int(22.5 * d.SAMPLE_RATE)] = 0
+        session.feed(audio)
+        session.close()
+        session.step()
+        self.assertAlmostEqual(model.calls[0][0] / d.SAMPLE_RATE, 22.2, delta=0.3)
+
+    def test_hallucinated_credits_are_removed(self):
+        text = "Merci pour le devis. Sous-titres réalisés para la communauté d'Amara.org"
+        self.assertEqual(d._WHISPER_HALLUCINATIONS.sub(" ", text).strip(), "Merci pour le devis.")
 
 
 class LexiconTests(unittest.TestCase):
@@ -151,6 +385,13 @@ class LexiconTests(unittest.TestCase):
         self.assertIn('"Allo" (contexte : « rendez-vous à … demain matin ») -> "Allauch"', block)
         self.assertIn('"facil a beau" / "facile à beau" (contexte : « l\'app … est en ligne ») -> "FacilAbo"', block)
         self.assertIn('- "ever volt" -> "EuroVolt"', block)
+
+    def test_asr_hint_prefers_current_app_without_wrong_variants_or_private_context(self):
+        hint = self.lex.transcription_hint("com.apple.mail")
+        self.assertTrue(hint.startswith("Vocabulaire : Allauch, FacilAbo"))
+        self.assertEqual(hint.count("FacilAbo"), 1)
+        self.assertNotIn("facil a beau", hint)
+        self.assertNotIn("rendez-vous", hint)
 
 
 class PrepareTests(unittest.TestCase):

@@ -5,7 +5,7 @@
 "a11y.locked" = "Écoute verrouillée";
 "a11y.processing" = "Mise en forme par l'IA";
 "a11y.stopHint" = "Appuie sur ta touche pour finir";
-"about.credits" = "Dictée vocale 100 % locale, sur ce Mac.\n\nVoxtral Mini 4B Realtime, Mistral AI\nQwen2.5-Coder 7B Instruct, Alibaba Cloud\nLicence Apache 2.0, exécutés par MLX\nMises à jour : Sparkle\n\nDétail : menu « Licences tierces… »";
+"about.credits" = "Dictée vocale 100 % locale, sur ce Mac.\n\nParakeet TDT v3, NVIDIA (licence CC BY 4.0)\nQwen3.5 4B, Alibaba Cloud (licence Apache 2.0)\nExécutés par MLX\nMises à jour : Sparkle\n\nDétail : menu « Licences tierces… »";
 "engine.autoRetry" = "VoxFlow réessaiera tout seul dans quelques minutes.";
 "engine.bytes" = "%1$@ sur %2$@";
 "engine.copyLog" = "Copier le journal";
@@ -110,7 +110,7 @@
 "onboarding.back" = "Précédent";
 "onboarding.background" = "%@ · en arrière-plan";
 "onboarding.engines.footnote" = "Ce Mac : %1$@ de mémoire · %2$@ libres";
-"onboarding.engines.subtitle" = "Ils tournent sur ton Mac, sans connexion une fois téléchargés. Voxtral, commun aux deux, se télécharge déjà ; Qwen ne se télécharge que si tu choisis Complet. Tu pourras changer plus tard dans les Réglages.";
+"onboarding.engines.subtitle" = "Ils tournent sur ton Mac, sans connexion une fois téléchargés. Parakeet (la transcription), commun aux deux, se télécharge déjà ; Qwen ne se télécharge que si tu choisis Complet. Tu pourras changer plus tard dans les Réglages.";
 "onboarding.engines.title" = "Choisis tes moteurs";
 "onboarding.finish" = "Terminer";
 "onboarding.key.detected" = "Touche détectée : %@ ✓";

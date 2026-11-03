@@ -29,7 +29,7 @@ public enum InferenceError: Error, LocalizedError {
 }
 
 /// Client WebSocket du démon : l'audio part pendant la dictée, la transcription
-/// Voxtral avance en parallèle, et seul le nettoyage reste à faire à l'arrêt.
+/// La transcription avance en parallèle, et seul le nettoyage reste à faire à l'arrêt.
 public final class InferenceClient {
     public static var tokenURL: URL {
         VoxFlowPaths.dataDirectory.appendingPathComponent("token")
