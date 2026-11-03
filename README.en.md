@@ -190,23 +190,17 @@ I'm an indie developer in France. If VoxFlow saves you time, the nicest thank-yo
 
 <table>
 <tr>
-<td align="center" width="33%">
+<td align="center" width="50%">
 <a href="https://apps.apple.com/fr/app/facilabo-de-230-calendriers/id6756318719"><img src="assets/facilabo-icon.png" width="72" alt="FacilAbo"></a><br>
 <b>FacilAbo</b><br>
 <sub>Your calendars on iPhone.</sub><br>
 <sub>iPhone</sub>
 </td>
-<td align="center" width="33%">
+<td align="center" width="50%">
 <a href="https://apps.apple.com/fr/app/eurovolt-conso-%C3%A9lectricit%C3%A9/id6761270150"><img src="assets/eurovolt-icon.png" width="72" alt="EuroVolt"></a><br>
 <b>EuroVolt</b><br>
 <sub>Your Linky meter in euros, day by day, with home-screen widgets.</sub><br>
 <sub>iPhone · France</sub>
-</td>
-<td align="center" width="33%">
-<a href="https://apps.apple.com/fr/app/pastscreen/id6755425479"><img src="assets/pastscreen-icon.png" width="72" alt="PastScreen"></a><br>
-<b>PastScreen</b><br>
-<sub>Ultra-fast, clipboard-first screenshots for developers.</sub><br>
-<sub>Mac</sub>
 </td>
 </tr>
 </table>

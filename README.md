@@ -157,9 +157,8 @@ Je suis **Eric Cologni**, développeur indépendant. Si VoxFlow vous rend servic
 
 <table>
 <tr>
-<td align="center" width="33%"><a href="https://apps.apple.com/fr/app/facilabo-de-230-calendriers/id6756318719"><img src="assets/facilabo-icon.png" width="64" alt="FacilAbo"><br><strong>FacilAbo</strong></a><br><sub>Vos calendriers sur iPhone.</sub></td>
-<td align="center" width="33%"><a href="https://apps.apple.com/fr/app/eurovolt-conso-%C3%A9lectricit%C3%A9/id6761270150"><img src="assets/eurovolt-icon.png" width="64" alt="EuroVolt"><br><strong>EuroVolt</strong></a><br><sub>Votre consommation électrique.</sub></td>
-<td align="center" width="33%"><a href="https://apps.apple.com/fr/app/pastscreen/id6755425479"><img src="assets/pastscreen-icon.png" width="64" alt="PastScreen"><br><strong>PastScreen</strong></a><br><sub>Vos captures sur Mac.</sub></td>
+<td align="center" width="50%"><a href="https://apps.apple.com/fr/app/facilabo-de-230-calendriers/id6756318719"><img src="assets/facilabo-icon.png" width="64" alt="FacilAbo"><br><strong>FacilAbo</strong></a><br><sub>Vos calendriers sur iPhone.</sub></td>
+<td align="center" width="50%"><a href="https://apps.apple.com/fr/app/eurovolt-conso-%C3%A9lectricit%C3%A9/id6761270150"><img src="assets/eurovolt-icon.png" width="64" alt="EuroVolt"><br><strong>EuroVolt</strong></a><br><sub>Votre consommation électrique.</sub></td>
 </tr>
 </table>
 
