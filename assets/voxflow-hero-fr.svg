@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="728" viewBox="0 0 1440 728" role="img" aria-labelledby="title">
+<title id="title">VoxFlow : dictez, corrigez, enrichissez votre dictionnaire</title>
+<g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif">
+<rect x="0" y="0" width="1440" height="728" rx="30" fill="#111315" stroke="none"/>
+<rect x="66" y="42" width="58" height="58" rx="16" fill="#22252A" stroke="#454A50"/>
+<rect x="80.0" y="68.12" width="2.4" height="5.76" rx="1.2" fill="#F5F5F3" stroke="none"/><rect x="84.8" y="65.24" width="2.4" height="11.52" rx="1.2" fill="#F5F5F3" stroke="none"/><rect x="89.6" y="61.88" width="2.4" height="18.24" rx="1.2" fill="#F5F5F3" stroke="none"/><rect x="94.4" y="58.519999999999996" width="2.4" height="24.96" rx="1.2" fill="#F5F5F3" stroke="none"/><rect x="99.2" y="61.4" width="2.4" height="19.2" rx="1.2" fill="#F5F5F3" stroke="none"/><rect x="104.0" y="64.76" width="2.4" height="12.48" rx="1.2" fill="#F5F5F3" stroke="none"/><rect x="108.8" y="67.64" width="2.4" height="6.72" rx="1.2" fill="#F5F5F3" stroke="none"/>
+<circle cx="112" cy="54" r="4" fill="#FF6257"/>
+<text x="144" y="82" font-size="36" fill="#F5F5F3" font-weight="600" >VoxFlow</text>
+<text x="1374" y="81" font-size="25" fill="#B7BDC5" font-weight="500" text-anchor="end">LA DICTÉE QUI APPREND VOS MOTS</text>
+<text x="66" y="216" font-size="72" fill="#F5F5F3" font-weight="650" >Parlez. Le texte suit.</text>
+<text x="66" y="272" font-size="30" fill="#B7BDC5" font-weight="400" >Corrigez un mot. Votre dictionnaire s’enrichit.</text>
+<rect x="66.0" y="326" width="421.3333333333333" height="270" rx="22" fill="#1B1D20" stroke="#32353A"/>
+<text x="92.0" y="371" font-size="26" fill="#8D9299" font-weight="500" >01</text>
+<text x="140.0" y="371" font-size="26" fill="#E5E7EB" font-weight="600" >DICTEZ</text>
+<text x="92.0" y="426" font-size="28" fill="#F5F5F3" font-weight="400" >Je t’envoie le devis</text>
+<text x="92.0" y="463" font-size="28" fill="#F5F5F3" font-weight="400" >facil a beau demain.</text>
+<rect x="92.0" y="495" width="54" height="44" rx="10" fill="#2A2D32" stroke="#4A4F55"/>
+<text x="106.0" y="524" font-size="24" fill="#F5F5F3" font-weight="500" >fn</text>
+<rect x="172.0" y="513.1" width="3.25" height="7.800000000000001" rx="1.625" fill="#D8DADD" stroke="none"/><rect x="178.5" y="509.2" width="3.25" height="15.600000000000001" rx="1.625" fill="#D8DADD" stroke="none"/><rect x="185.0" y="504.65" width="3.25" height="24.7" rx="1.625" fill="#D8DADD" stroke="none"/><rect x="191.5" y="500.1" width="3.25" height="33.800000000000004" rx="1.625" fill="#D8DADD" stroke="none"/><rect x="198.0" y="504.0" width="3.25" height="26.0" rx="1.625" fill="#D8DADD" stroke="none"/><rect x="204.5" y="508.55" width="3.25" height="16.900000000000002" rx="1.625" fill="#D8DADD" stroke="none"/><rect x="211.0" y="512.45" width="3.25" height="9.1" rx="1.625" fill="#D8DADD" stroke="none"/>
+<circle cx="236.0" cy="517" r="5" fill="#FF6257"/>
+<rect x="509.3333333333333" y="326" width="421.3333333333333" height="270" rx="22" fill="#1B1D20" stroke="#32353A"/>
+<text x="535.3333333333333" y="371" font-size="26" fill="#8D9299" font-weight="500" >02</text>
+<text x="583.3333333333333" y="371" font-size="26" fill="#E5E7EB" font-weight="600" >CORRIGEZ</text>
+<text x="535.3333333333333" y="425" font-size="28" fill="#A6ABB2" font-weight="400" >facil a beau</text>
+<path d="M535.3333333333333 415h160" stroke="#A6ABB2" stroke-width="2"/>
+<text x="535.3333333333333" y="470" font-size="34" fill="#9BE5B5" font-weight="600" >FacilAbo</text>
+<text x="535.3333333333333" y="513" font-size="25" fill="#B7BDC5" font-weight="400" >Directement dans votre texte.</text>
+<text x="535.3333333333333" y="546" font-size="25" fill="#B7BDC5" font-weight="400" >Comme vous le faites déjà.</text>
+<rect x="952.6666666666666" y="326" width="421.3333333333333" height="270" rx="22" fill="#1B1D20" stroke="#32353A"/>
+<text x="978.6666666666666" y="371" font-size="26" fill="#8D9299" font-weight="500" >03</text>
+<text x="1026.6666666666665" y="371" font-size="26" fill="#E5E7EB" font-weight="600" >C’EST RETENU</text>
+<rect x="978.6666666666666" y="407" width="369.3333333333333" height="54" rx="27" fill="#163526" stroke="#2B6345"/>
+<path d="M997.6666666666666 434l5 5 10-11" fill="none" stroke="#9BE5B5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1023.6666666666666" y="442" font-size="26" fill="#B9F2CB" font-weight="500" >Appris : FacilAbo</text>
+<text x="978.6666666666666" y="513" font-size="28" fill="#B7BDC5" font-weight="400" >Une règle locale pour</text>
+<text x="978.6666666666666" y="547" font-size="28" fill="#B7BDC5" font-weight="400" >les prochaines dictées.</text>
+<text x="720.0" y="665" font-size="25" fill="#B7BDC5" font-weight="500" text-anchor="middle">GRATUIT  ·  SANS COMPTE  ·  SUR VOTRE MAC</text>
+</g>
+</svg>
