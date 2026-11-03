@@ -75,6 +75,8 @@ MLX_CACHE_LIMIT_BYTES = 2 * 1024**3
 # continue dans le worker après la livraison du texte de secours.
 LLM_BUDGET_SECONDS = 1.5
 WAKE_IDLE_SECONDS = 30.0
+# Un appui bref ne doit pas lancer une préparation qui retarde sa finalisation.
+WAKE_MIN_AUDIO_SECONDS = 1.0
 
 # --------------------------------------------------------------------------
 # Normalisation, phonétique française simplifiée, similarité
@@ -772,9 +774,10 @@ class MLXEngines:
         self._last_activity = time.perf_counter()
 
     def wake_if_idle(self) -> float:
-        """Après une pause d'usage, réveille les poids pendant que l'audio arrive.
-        Aucune boucle périodique : ce travail n'a lieu qu'au début d'une dictée.
-        Le bruit/silence synthétique n'est jamais livré comme transcription."""
+        """Réveille uniquement l'ASR pendant une capture déjà en cours.
+        Qwen reste à la demande : son premier token à froid peut dépasser son
+        budget, même sur une capture vide qui n'aura aucun texte à nettoyer.
+        Le silence synthétique n'est jamais livré comme transcription."""
         if (not type(self.asr).__module__.startswith("mlx_audio.stt.models.parakeet")
                 or time.perf_counter() - self._last_activity < WAKE_IDLE_SECONDS):
             return 0.0
@@ -783,12 +786,6 @@ class MLXEngines:
         started = time.perf_counter()
         self.mark_active()
         self.asr.generate(mx.zeros(SAMPLE_RATE // 2))
-        if self.use_llm:
-            try:
-                self.complete(build_messages("bonjour", []), max_tokens=8,
-                              deadline=time.perf_counter() + 0.35)
-            except GenerationBudgetExceeded:
-                pass  # le premier token suffit déjà à réchauffer le décodeur
         return (time.perf_counter() - started) * 1000
 
     def keep_resident(self) -> None:
@@ -1111,20 +1108,36 @@ class DictationConnection:
         self.deltas: list[str] = []
         self.bundle_id = ""
         self.samples = 0
+        self.has_signal = False
         self.started_at = 0.0
         self.wake_ms = 0.0
 
     async def send(self, payload: dict) -> None:
         await self.ws.send(json.dumps(payload, ensure_ascii=False))
 
+    def _wake_if_recording(self, session) -> float:
+        # Revérifie dans le worker : l'arrêt peut arriver après la soumission
+        # de ce travail à la file, avant son exécution effective.
+        if getattr(session, "closed", False) or getattr(session, "_audio_closed", False):
+            return 0.0
+        return self.service.engines.wake_if_idle()
+
     async def pump(self) -> None:
         """Fait avancer la transcription pendant que l'audio arrive."""
         session = self.session
-        try:
-            self.wake_ms = round(await self.service.mlx.run(self.service.engines.wake_if_idle), 1)
-        except Exception:  # noqa: BLE001 — l'optimisation ne doit pas empêcher la dictée
-            log.warning("Réveil anticipé indisponible, transcription normale", exc_info=True)
+        wake_checked = False
         while not session.done:
+            # Aucun travail spéculatif à l'appui : attendre un peu d'audio, et
+            # l'abandonner si la touche est déjà relâchée. Aucun seuil de volume
+            # ne filtre les échantillons : les voix faibles restent transcrites.
+            closed = getattr(session, "closed", False) or getattr(session, "_audio_closed", False)
+            if (not wake_checked and not closed and self.has_signal
+                    and self.samples >= WAKE_MIN_AUDIO_SECONDS * SAMPLE_RATE):
+                wake_checked = True
+                try:
+                    self.wake_ms = round(await self.service.mlx.run(self._wake_if_recording, session), 1)
+                except Exception:  # noqa: BLE001 — l'optimisation ne doit pas empêcher la dictée
+                    log.warning("Réveil anticipé indisponible, transcription normale", exc_info=True)
             deltas = await self.service.mlx.run(session.step, max_decode_tokens=16)
             if deltas:
                 self.deltas.extend(deltas)
@@ -1146,6 +1159,7 @@ class DictationConnection:
         self.session = await self.service.mlx.run(self.service.engines.create_session, hint)
         self.deltas = []
         self.samples = 0
+        self.has_signal = False
         self.started_at = time.perf_counter()
         self.wake_ms = 0.0
         self.pump_task = asyncio.create_task(self.pump())
@@ -1158,6 +1172,7 @@ class DictationConnection:
             return
         samples = np.frombuffer(data, dtype="<f4").astype(np.float32)
         self.samples += samples.size
+        self.has_signal = self.has_signal or bool(np.any(samples))
         self.session.feed(samples)
 
     async def stop(self) -> None:
@@ -1187,7 +1202,8 @@ class DictationConnection:
             wake_during_audio_ms=self.wake_ms,
             total_after_stop_ms=round((time.perf_counter() - t_stop) * 1000, 1),
         )
-        self.service.engines.mark_active()
+        if self.has_signal or self.wake_ms:
+            self.service.engines.mark_active()
         # Le journal peut finir dans un ticket public : jamais le texte dicté, sauf VOXFLOW_DEBUG=1.
         # La raison détaillée peut contenir un nom du lexique : elle reste dans le
         # protocole local, jamais dans un journal susceptible d'être partagé.

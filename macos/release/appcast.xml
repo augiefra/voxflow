@@ -5,6 +5,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <title>VoxFlow</title>
     <language>fr</language>
     <item>
+      <title>VoxFlow 0.1.7</title>
+      <pubDate>Tue, 03 Nov 2026 10:23:05 GMT</pubDate>
+      <sparkle:version>0.1.7</sparkle:version>
+      <sparkle:shortVersionString>0.1.7</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>VoxFlow 0.1.7 — fin rapide après un appui sans parole</p><p>Un bref appui puis relâchement sans parler pouvait laisser « Mise en forme… » affiché pendant plusieurs secondes. La préparation des modèles ne démarre plus dès l&#x27;appui : elle attend de l&#x27;audio et est abandonnée si la capture est déjà terminée.</p><p>Seul le moteur de transcription est préparé pendant l&#x27;écoute. Qwen reste appelé lorsqu&#x27;un texte a besoin d&#x27;être nettoyé. Aucun nouveau seuil de volume ne rejette la voix faible. Le dictionnaire appris et sa confirmation restent inchangés.</p><p>Le correctif est couvert par 60 tests Python et des essais avec les vrais modèles : silence, bruit bref, voix atténuée 100 fois et mise en forme après inactivité. Les mesures et les limites, dont les faux positifs possibles sur certains bruits, sont détaillées dans docs/PERFORMANCE.md du dépôt. Aucun nouveau téléchargement de modèle n&#x27;est nécessaire depuis la version 0.1.6.</p><p>VoxFlow 0.1.7 — faster finish after a silent key press</p><p>A brief press and release without speaking could leave “Formatting…” visible for several seconds. Optional model preparation now waits for incoming audio and is skipped if recording has already ended.</p><p>Only the speech engine is prepared while recording. Qwen runs when actual text needs cleanup. No new volume threshold discards quiet speech. Learned vocabulary and its confirmation are unchanged.</p><p>Validated with 60 Python tests and real-model checks for silence, brief background noise, speech attenuated 100 times, and cleanup after inactivity. Measurements and limitations, including possible false transcripts on some noises, are documented in docs/PERFORMANCE.md. No additional model download is needed when updating from 0.1.6.</p>]]></description>
+      <enclosure url="https://github.com/augiefra/voxflow/releases/download/v0.1.7/VoxFlow-0.1.7.dmg" type="application/octet-stream" sparkle:edSignature="L/YJruugiD0I9o4pHw8M6GiEPBT/vzgcKGdERyhh2D7Nnj5pQfiCIrkqdjWBJ5MVP3BEoFJaQQ+DcUZqtR0ZDw==" length="19328495"></enclosure>
+    </item>
+    <item>
       <title>VoxFlow 0.1.6</title>
       <pubDate>Tue, 03 Nov 2026 09:49:50 GMT</pubDate>
       <sparkle:version>0.1.6</sparkle:version>
@@ -60,6 +69,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: sD/oSKVoFHCLa2ovPrjXvkH0bfhZQsLEFqcw4VfNIvQY6OEvLRiy+j7kfyiSI7ikmJvTnuetsY7Gc2YhWip7BQ==
-length: 10872
+edSignature: 4R2QwcWkIw+V8l4a7l+VsHSSBS9HCdtco/jZwO8KvXZiJiepZFU8py5BwqWtTEkKBKW1GahvGNvz+BQtZYQDBQ==
+length: 13321
 -->

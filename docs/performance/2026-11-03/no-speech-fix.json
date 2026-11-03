@@ -1,0 +1,176 @@
+{
+  "version": "0.1.7",
+  "date": "2026-11-03",
+  "hardware": "M4 Pro, 24 GB",
+  "python_tests_passed": 60,
+  "transport": "Installed app, authenticated local WebSocket; synthetic audio, no microphone or paste",
+  "initial_validation_before_worker_guard": {
+    "version": "0.1.7",
+    "rows": [
+      {
+        "case": "aucun_audio",
+        "ms": 33.7,
+        "text": "",
+        "timings": {
+          "audio_s": 0.0,
+          "asr_tail_ms": 32.0,
+          "release_ms": 0.2,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 32.3
+        }
+      },
+      {
+        "case": "silence_court",
+        "ms": 22.1,
+        "text": "",
+        "timings": {
+          "audio_s": 0.6,
+          "asr_tail_ms": 18.7,
+          "release_ms": 0.3,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 19.3
+        }
+      },
+      {
+        "case": "bruit_court_a_froid",
+        "ms": 203.9,
+        "text": "",
+        "timings": {
+          "audio_s": 0.6,
+          "asr_tail_ms": 201.4,
+          "release_ms": 1.3,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 202.7
+        }
+      },
+      {
+        "case": "phrase_courte",
+        "ms": 192.1,
+        "text": "Bonjour Julien, je te rappelle demain matin.",
+        "timings": {
+          "lexicon_ms": 1.6,
+          "audio_s": 2.93,
+          "asr_tail_ms": 187.9,
+          "release_ms": 1.6,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 191.0
+        }
+      },
+      {
+        "case": "voix_faible_100_fois",
+        "ms": 193.2,
+        "text": "Bonjour Julien, je te rappelle demain matin.",
+        "timings": {
+          "lexicon_ms": 1.6,
+          "audio_s": 2.93,
+          "asr_tail_ms": 188.7,
+          "release_ms": 1.7,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 192.0
+        }
+      },
+      {
+        "case": "bruit_long_a_froid",
+        "ms": 95.7,
+        "text": "It's a good one.",
+        "timings": {
+          "lexicon_ms": 2.9,
+          "audio_s": 3.0,
+          "asr_tail_ms": 80.8,
+          "release_ms": 10.0,
+          "wake_during_audio_ms": 692.3,
+          "total_after_stop_ms": 93.7
+        }
+      },
+      {
+        "case": "silence_long",
+        "ms": 32.7,
+        "text": "",
+        "timings": {
+          "audio_s": 3.0,
+          "asr_tail_ms": 30.8,
+          "release_ms": 0.3,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 31.2
+        }
+      },
+      {
+        "case": "phrase_apres_silence",
+        "ms": 754.4,
+        "text": "Bonjour Julien, je te rappelle demain matin.",
+        "timings": {
+          "lexicon_ms": 2.0,
+          "audio_s": 2.93,
+          "asr_tail_ms": 749.2,
+          "release_ms": 2.2,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 753.5
+        }
+      }
+    ],
+    "daemon_sha256": "c1163b31deb49065291c660d3b26b27f6b9822c355f5a1b59f4145d1d4def23e"
+  },
+  "final_installed_validation": {
+    "version": "0.1.7",
+    "daemon_sha256": "b404e9d7b5f039b15b1f2371e204a7353c31f01d7ade80c822b064e7c1c510d0",
+    "rows": [
+      {
+        "case": "final_silence",
+        "ms": 20.6,
+        "text": "",
+        "timings": {
+          "audio_s": 0.6,
+          "asr_tail_ms": 18.9,
+          "release_ms": 0.1,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 19.1
+        }
+      },
+      {
+        "case": "final_bruit_bref",
+        "ms": 161.4,
+        "text": "",
+        "timings": {
+          "audio_s": 0.6,
+          "asr_tail_ms": 159.4,
+          "release_ms": 1.1,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 160.5
+        }
+      },
+      {
+        "case": "final_voix_faible",
+        "ms": 181.5,
+        "text": "Bonjour Julien, je te rappelle demain matin.",
+        "timings": {
+          "lexicon_ms": 1.9,
+          "audio_s": 2.93,
+          "asr_tail_ms": 177.1,
+          "release_ms": 1.5,
+          "wake_during_audio_ms": 0.0,
+          "total_after_stop_ms": 180.6
+        }
+      },
+      {
+        "case": "final_nettoyage_reprise",
+        "ms": 823.6,
+        "text": "Je passe mercredi matin pour récupérer le dossier.",
+        "timings": {
+          "lexicon_ms": 2.4,
+          "llm_chars": 69,
+          "llm_ms": 588.2,
+          "audio_s": 5.38,
+          "asr_tail_ms": 228.8,
+          "release_ms": 3.1,
+          "wake_during_audio_ms": 182.6,
+          "total_after_stop_ms": 822.6
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "Not a percentile or a guarantee for other voices or hardware.",
+    "Stationary synthetic noise (seed 8, RMS 0.003, 3 s) produced a false ASR transcript. The latency fix does not add a speech detector.",
+    "The final worker guard is covered by a deterministic queue-race regression test."
+  ]
+}

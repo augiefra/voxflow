@@ -76,7 +76,7 @@ repérée phonétiquement : cette dernière peut encore être confiée à Qwen. 
 termes canoniques peuvent aussi guider Whisper dans un petit prompt ; Parakeet
 n'accepte pas ce prompt textuel.
 
-## Vérification sur l'app installée, après inactivité
+## Vérification de 0.1.6 sur l'app installée, après inactivité
 
 La version locale **0.1.6** a été construite et signée avec l'identité Developer ID
 existante, installée dans `/Applications/VoxFlow.app`, puis ouverte. Son endpoint
@@ -85,11 +85,14 @@ est identique au code du dépôt (SHA-256 dans le rapport).
 
 Le premier contrôle réel du daemon révélait encore environ **0,90 s après une
 période d'inactivité**, contre **0,19 s** pour la phrase suivante. Le moteur
-réveille désormais Parakeet et brièvement Qwen dès le début d'une dictée si la
+réveillait alors Parakeet et brièvement Qwen dès le début d'une dictée si la
 dernière activité remonte à plus de **30 s**. Cela se fait dans le worker MLX
 pendant que l'audio continue d'arriver ; aucun travail périodique n'est lancé
 lorsque l'app est inutilisée. Une dictée très brève peut toujours se terminer
 avant la fin de cette préparation.
+
+Ce réveil a ensuite révélé un défaut sur les captures sans parole : voir le
+correctif 0.1.7 ci-dessous. Ces mesures décrivent la version 0.1.6 publiée.
 
 Le contrôle final utilise le vrai serveur WebSocket de l'app installée, son jeton
 local et les mêmes WAV, sans déclencher le micro ou un collage dans une autre app :
@@ -105,6 +108,48 @@ Le texte attendu et la reprise vers « mercredi » ont été vérifiés. Ces qua
 ne constituent pas un percentile représentatif de l'usage réel.
 [Avant le correctif d'inactivité](performance/2026-11-03/installed-before-idle-fix.json),
 [contrôle final installé](performance/2026-11-03/installed-final.json).
+
+## Correctif 0.1.7 : arrêt sans parole
+
+Le journal de l'app 0.1.6 montrait une capture de 0,59 s sans texte, suivie de
+8 968 ms d'attente ASR après relâchement. Le réveil anticipé durait 9 682 ms et
+retenait le worker avant la transcription, même sans texte à nettoyer.
+
+Le réveil facultatif attend maintenant au moins une seconde d'audio non nul et
+vérifie que la capture est encore ouverte, y compris au démarrage du travail
+dans le worker. Il prépare uniquement Parakeet : Qwen est appelé par le nettoyage
+lorsqu'un texte le justifie. Aucun seuil de volume ne rejette les échantillons.
+Le silence numérique ne réinitialise pas l'horloge d'activité des modèles.
+
+Essais via le vrai WebSocket local de l'app signée 0.1.7, sans micro ni collage :
+
+| Cas | Résultat reçu après arrêt | Texte |
+| --- | ---: | --- |
+| Aucun audio reçu | 33,7 ms | Vide |
+| Silence numérique de 0,6 s après 35 s d'inactivité | 22,1 ms | Vide |
+| Bruit synthétique bref de 0,6 s, sans réveil préalable | 203,9 ms | Vide |
+| Bruit synthétique de 3 s après 35 s d'inactivité | 95,7 ms | Faux positif ASR |
+| Silence numérique de 3 s | 32,7 ms | Vide |
+| Phrase synthétique courte | 192,1 ms | Phrase attendue |
+| Même phrase atténuée 100 fois | 193,2 ms | Phrase attendue |
+| Phrase après le silence long | 754,4 ms | Phrase attendue |
+
+Le bruit long termine rapidement mais produit « It's a good one. » : le correctif
+de latence ne constitue donc pas un détecteur de parole et n'élimine pas tous les
+faux positifs du moteur. Les cas ambigus restent transcrits pour préserver la
+parole faible. Ce bruit est synthétique, pas un enregistrement de pièce.
+
+Les 60 tests Python passent, dont les captures vides, la conservation de tous les
+échantillons d'une voix faible, la réception audio pendant le réveil et un arrêt
+survenant avant qu'un réveil mis en file ait commencé. Le code Swift existant
+masque le HUD et libère la touche occupée dès qu'un résultat vide est reçu.
+
+Le contrôle de la version finale signée confirme 20,6 ms pour le silence bref,
+161,4 ms pour le bruit bref et 181,5 ms pour la phrase atténuée 100 fois. Une
+reprise (« mardi, non pardon, mercredi ») après 35 s d'inactivité est correctement
+nettoyée en 823,6 ms, dont 588,2 ms pour Qwen. Ces contrôles ne représentent pas
+un percentile ni une garantie sur tous les Mac. Les mesures et les empreintes
+des moteurs embarqués sont dans le [rapport JSON](performance/2026-11-03/no-speech-fix.json).
 
 ## Qualité et robustesse
 

@@ -11,6 +11,7 @@ import time
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import numpy as np
 from websockets.asyncio.client import connect
@@ -214,6 +215,81 @@ class GenerationBudgetTests(unittest.TestCase):
 
 
 class WakeDuringAudioTests(unittest.IsolatedAsyncioTestCase):
+    class Socket:
+        def __init__(self):
+            self.messages = []
+
+        async def send(self, payload):
+            self.messages.append(json.loads(payload))
+
+    async def test_short_capture_keeps_quiet_speech_without_speculative_wake(self):
+        class Model:
+            def __init__(self):
+                self.audio = None
+
+            def generate(self, audio, **kwargs):
+                self.audio = audio
+                return SimpleNamespace(text="Bonjour.")
+
+        class Engines(d.MockEngines):
+            def create_session(self, hint=""):
+                self.model = Model()
+                return d.ChunkedSession(self.model)
+
+            def wake_if_idle(self):
+                raise AssertionError("une capture brève ne doit pas lancer le réveil")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            engine = Engines()
+            service = d.DictationService(engine, d.Lexicon(Path(tmp) / "lexicon.db"))
+            service.status = "ready"
+            socket = self.Socket()
+            conn = d.DictationConnection(service, socket)
+            audio = np.random.default_rng(7).normal(0, 0.00001, 9600).astype("<f4")
+            try:
+                await conn.start({})
+                conn.feed(audio.tobytes())
+                await conn.stop()
+                np.testing.assert_array_equal(engine.model.audio, audio)
+                final = next(m for m in socket.messages if m["type"] == "final")
+                self.assertEqual(final["text"], "Bonjour.")
+                self.assertEqual(final["timings"]["wake_during_audio_ms"], 0)
+            finally:
+                await conn.reset()
+                service.mlx.pool.shutdown(wait=True)
+
+    async def test_empty_and_digital_silence_do_not_wake_or_mark_models_active(self):
+        class Engines(d.MockEngines):
+            def create_session(self, hint=""):
+                return d.ChunkedSession(SimpleNamespace(generate=self.unexpected))
+
+            def unexpected(self, *args, **kwargs):
+                raise AssertionError("aucune inférence sur le silence numérique")
+
+            wake_if_idle = unexpected
+            mark_active = unexpected
+
+        with tempfile.TemporaryDirectory() as tmp:
+            service = d.DictationService(Engines(), d.Lexicon(Path(tmp) / "lexicon.db"))
+            service.status = "ready"
+            socket = self.Socket()
+            conn = d.DictationConnection(service, socket)
+            try:
+                for seconds in (0, 0.6, 2):
+                    with self.subTest(seconds=seconds):
+                        await conn.start({})
+                        conn.feed(np.zeros(int(seconds * d.SAMPLE_RATE), dtype="<f4").tobytes())
+                        # Donne au pump l'occasion de préparer un réveil pendant la capture.
+                        await asyncio.sleep(0.05)
+                        await conn.stop()
+                        final = socket.messages[-1]
+                        self.assertEqual(final["type"], "final")
+                        self.assertEqual(final["text"], "")
+                        self.assertEqual(final["timings"]["wake_during_audio_ms"], 0)
+            finally:
+                await conn.reset()
+                service.mlx.pool.shutdown(wait=True)
+
     async def test_audio_keeps_arriving_while_the_worker_wakes(self):
         class Engines(d.MockEngines):
             def __init__(self):
@@ -226,21 +302,17 @@ class WakeDuringAudioTests(unittest.IsolatedAsyncioTestCase):
                 self.finished.set()
                 return 50.0
 
-        class Socket:
-            def __init__(self):
-                self.messages = []
-
-            async def send(self, payload):
-                self.messages.append(json.loads(payload))
-
         with tempfile.TemporaryDirectory() as tmp:
             engine = Engines()
             service = d.DictationService(engine, d.Lexicon(Path(tmp) / "lexicon.db"))
             service.status = "ready"
-            socket = Socket()
+            socket = self.Socket()
             conn = d.DictationConnection(service, socket)
             try:
                 await conn.start({"sample_rate": 16000})
+                await asyncio.sleep(0.01)
+                self.assertFalse(engine.started.is_set())
+                conn.feed(np.ones(d.SAMPLE_RATE, dtype="<f4").tobytes())
                 for _ in range(100):
                     if engine.started.is_set():
                         break
@@ -250,10 +322,60 @@ class WakeDuringAudioTests(unittest.IsolatedAsyncioTestCase):
                 self.assertFalse(engine.finished.is_set())
                 await conn.stop()
                 final = next(m for m in socket.messages if m["type"] == "final")
-                self.assertIn("1.0 secondes", final["raw"])
+                self.assertIn("2.0 secondes", final["raw"])
                 self.assertEqual(final["timings"]["wake_during_audio_ms"], 50.0)
             finally:
                 await conn.reset()
+                service.mlx.pool.shutdown(wait=True)
+
+    def test_speculative_wake_never_runs_qwen(self):
+        calls = []
+        model_type = type("Parakeet", (), {"__module__": "mlx_audio.stt.models.parakeet"})
+        model = model_type()
+        model.generate = lambda audio: calls.append(audio)
+        engine = d.MLXEngines("asr", "llm", 480, True)
+        engine.asr = model
+        engine.complete = lambda *args, **kwargs: self.fail("Qwen ne doit pas être réveillé sans texte")
+        mx = SimpleNamespace(zeros=lambda count: np.zeros(count))
+        with patch.dict("sys.modules", {"mlx": SimpleNamespace(core=mx), "mlx.core": mx}):
+            engine.wake_if_idle()
+        self.assertEqual(len(calls), 1)
+
+    async def test_queued_wake_is_skipped_if_capture_closes_before_worker_is_free(self):
+        class Engines(d.MockEngines):
+            def wake_if_idle(self):
+                raise AssertionError("la capture est fermée avant le démarrage du réveil")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            service = d.DictationService(Engines(), d.Lexicon(Path(tmp) / "lexicon.db"))
+            conn = d.DictationConnection(service, self.Socket())
+            session = d.MockSession()
+            worker_entered, release_worker = threading.Event(), threading.Event()
+
+            def occupy_worker():
+                worker_entered.set()
+                if not release_worker.wait(2):
+                    raise AssertionError("test : worker non libéré")
+
+            blocker = asyncio.create_task(service.mlx.run(occupy_worker))
+            wake = None
+            try:
+                for _ in range(100):
+                    if worker_entered.is_set():
+                        break
+                    await asyncio.sleep(0.001)
+                self.assertTrue(worker_entered.is_set())
+                wake = asyncio.create_task(service.mlx.run(conn._wake_if_recording, session))
+                await asyncio.sleep(0)  # le réveil rejoint la file derrière occupy_worker
+                session.close()
+                release_worker.set()
+                self.assertEqual(await wake, 0)
+                await blocker
+            finally:
+                release_worker.set()
+                await blocker
+                if wake is not None:
+                    await wake
                 service.mlx.pool.shutdown(wait=True)
 
 

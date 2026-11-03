@@ -22,7 +22,9 @@
 
 </div>
 
-**New in [VoxFlow 0.1.6](https://github.com/augiefra/voxflow/releases/tag/v0.1.6):** faster local dictation with Parakeet, preparation while you speak after inactivity, and more selective Qwen cleanup. On 30 synthetic French clips on an M4 Pro, median engine time after release went from 1.34 s to 0.19 s, before paste. See the [measurements and limits](docs/PERFORMANCE.md).
+**New in [VoxFlow 0.1.7](https://github.com/augiefra/voxflow/releases/tag/v0.1.7):** fixes the formatting indicator lingering after a brief recording without speech. Optional preparation waits for audio, skips a capture that has already ended, and leaves Qwen asleep until text needs cleanup. Quiet speech is preserved.
+
+Version 0.1.6 introduced faster local dictation with Parakeet and more selective Qwen cleanup. On 30 synthetic French clips on an M4 Pro, median engine time after release went from 1.34 s to 0.19 s, before paste. See the [measurements and limits](docs/PERFORMANCE.md).
 
 ## Why VoxFlow
 
