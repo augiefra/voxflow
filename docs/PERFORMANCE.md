@@ -151,6 +151,45 @@ nettoyée en 823,6 ms, dont 588,2 ms pour Qwen. Ces contrôles ne représentent 
 un percentile ni une garantie sur tous les Mac. Les mesures et les empreintes
 des moteurs embarqués sont dans le [rapport JSON](performance/2026-11-03/no-speech-fix.json).
 
+## Contexte audio et ressources — correctif local 0.1.8, 4 novembre
+
+Parakeet détecte automatiquement la langue ; l'implémentation MLX utilisée ne
+permet pas de forcer `language="fr"` sur ce chemin. Chaque morceau repartait sans
+audio précédent. La version locale 0.1.8 conserve jusqu'à 2 s d'audio et fusionne
+les tokens horodatés. Les résultats partiels sont des snapshots révisables. Un
+raccord sans ancre fiable revient au décodage de la nouvelle tranche seule.
+
+Le [comparatif ASR](performance/2026-11-04/audio-context-comparison.json) utilise
+un seul modèle chargé, des trames virtuelles de 100 ms et 43 cas synthétiques :
+les 30 clips initiaux, une coupure forcée, une voix faible avec pause, un silence,
+puis dix fins courtes françaises. Les 33 premiers cas gardent le même WER ; cinq
+fins courtes sont mieux orthographiées (« préparé », « précisé », « présenté »).
+La médiane du travail ASR restant après clôture vaut 39,9 ms avant et 40,8 ms
+après ; les raccords mesurés ajoutent généralement 10 à 20 ms. Ces valeurs sont
+un microbenchmark sans attente temps réel, pas la latence complète de l'app.
+
+La dernière protection sur un token traversant la coupure a été ajoutée après
+ce comparatif, puis couverte par les 70 tests Python. Le [contrôle installé en
+temps réel](performance/2026-11-04/installed-context.json) confirme le silence
+(19,7 ms), le contexte d'une fin courte (97,3 ms), la voix atténuée avec pause
+(220,6 ms), une nouvelle dictée indépendante (160,7 ms) et le nettoyage Qwen
+(882,4 ms). Le cas audio exact du changement en anglais n'est pas disponible :
+ces contrôles ne prouvent pas la disparition de toute confusion de langue.
+
+Le tampon supplémentaire est borné à 128 000 octets (125 Kio), en plus des
+tokens horodatés ; aucun modèle supplémentaire n'est chargé dans l'app.
+Sur le M4 Pro de 24 Go, le relevé initial en mode Complet donnait une empreinte
+mémoire du moteur de 5,2 Gio, avec un pic de 7,4 Gio depuis son lancement, et
+33 Mio pour l'interface. Le CPU au repos était proche de zéro sur deux relevés.
+L'installation gérée (app, modèles, Python et venv) occupait environ 7,8 Go sur
+le disque, dont 1,6 Go de l'ancien Whisper conservé. Le swap global de 10,5 Go
+concernait toutes les applications du Mac ; ce n'est pas une mesure attribuable
+à VoxFlow seul. L'autonomie n'a pas été mesurée.
+
+Après relance en 0.1.8 et les cinq contrôles installés, `vmmap` relève encore
+5,2 Gio pour le moteur, avec un pic de 6,5 Gio sur cette nouvelle durée de vie.
+Les fenêtres d'observation diffèrent : cela ne mesure pas une réduction du pic.
+
 ## Qualité et robustesse
 
 Les noms propres restent la principale limite. Sans lexique, le clip de noms

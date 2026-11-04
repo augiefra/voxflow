@@ -37,7 +37,7 @@ public final class InferenceClient {
 
     public let port: Int
     public let tokenFile: URL
-    /// Texte partiel (thread principal).
+    /// Texte complet courant (thread principal), à remplacer à chaque appel.
     public var onPartial: ((String) -> Void)?
 
     private let queue = DispatchQueue(label: "voxflow.inference")

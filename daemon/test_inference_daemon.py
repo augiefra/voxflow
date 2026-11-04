@@ -1,10 +1,13 @@
 """Tests du démon sans modèles : python -m unittest test_inference_daemon"""
 
 import asyncio
+import importlib.metadata
+import importlib.util
 import json
 import logging
 import os
 import sqlite3
+import sys
 import tempfile
 import threading
 import time
@@ -473,6 +476,179 @@ class ChunkedSessionTests(unittest.TestCase):
     def test_hallucinated_credits_are_removed(self):
         text = "Merci pour le devis. Sous-titres réalisés para la communauté d'Amara.org"
         self.assertEqual(d._WHISPER_HALLUCINATIONS.sub(" ", text).strip(), "Merci pour le devis.")
+
+
+class ParakeetContextTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Les outils d'alignement du SDK sont en Python pur : les charger sans
+        # importer son moteur MLX permet ces tests sans GPU ni modèle.
+        path = importlib.metadata.distribution("mlx-audio").locate_file(
+            "mlx_audio/stt/models/nemo/alignment.py")
+        spec = importlib.util.spec_from_file_location("_voxflow_alignment_tests", path)
+        cls.alignment = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = cls.alignment
+        spec.loader.exec_module(cls.alignment)
+
+    def setUp(self):
+        self.patches = patch.dict(sys.modules, {
+            "mlx": SimpleNamespace(core=SimpleNamespace(array=lambda audio: audio)),
+            "mlx.core": SimpleNamespace(array=lambda audio: audio),
+            "mlx_audio.stt.models.nemo.alignment": self.alignment,
+        })
+        self.patches.start()
+        self.addCleanup(self.patches.stop)
+
+    def model(self, responses):
+        alignment = self.alignment
+
+        class Model:
+            def __init__(self):
+                self.calls = []
+
+            def generate(self, audio):
+                self.calls.append(audio.copy())
+                tokens = [alignment.AlignedToken(i, text, start, duration)
+                          for i, text, start, duration in responses[len(self.calls) - 1]]
+                return alignment.sentences_to_result(alignment.tokens_to_sentences(tokens))
+
+        return Model()
+
+    def test_next_chunk_receives_audio_context_and_no_duplicate_words(self):
+        model = self.model([
+            [(1, "Bonjour", 0.1, 0.4), (2, " Julien.", 1.2, 0.4)],
+            [(2, " Julien.", 0.2, 0.4), (3, " Je", 2.1, 0.2), (4, " reviens.", 2.4, 0.4)],
+        ])
+        session = d.ParakeetSession(model)
+        first = np.arange(3 * d.SAMPLE_RATE, dtype=np.float32) / d.SAMPLE_RATE
+        second = np.ones(d.SAMPLE_RATE, dtype=np.float32) * 0.00001
+        self.assertEqual(session.transcribe(first), "Bonjour Julien.")
+        self.assertEqual(session.transcribe(second), "Bonjour Julien. Je reviens.")
+        np.testing.assert_array_equal(model.calls[1], np.concatenate((first[-2 * d.SAMPLE_RATE:], second)))
+        self.assertEqual(session._audio_context.size, 2 * d.SAMPLE_RATE)
+
+    def test_single_token_crossing_boundary_is_not_lost_or_duplicated(self):
+        model = self.model([
+            [(1, "Une", 0.0, 0.3), (2, " archi", 2.8, 0.2)],
+            [(2, " archi", 1.8, 0.25), (3, "tecture", 2.05, 0.25), (4, " simple.", 2.5, 0.4)],
+        ])
+        session = d.ParakeetSession(model)
+        self.assertEqual(session.transcribe(np.ones(3 * d.SAMPLE_RATE, dtype=np.float32)), "Une archi")
+        self.assertEqual(session.transcribe(np.ones(d.SAMPLE_RATE, dtype=np.float32)), "Une architecture simple.")
+
+    def test_unmatched_overlap_returns_to_original_chunk_instead_of_losing_a_word(self):
+        model = self.model([
+            [(1, "Une", 0.0, 0.3), (2, " archi", 2.8, 0.2)],
+            [(3, " architecture", 1.8, 0.5), (4, " simple.", 2.5, 0.4)],
+            [(5, "tecture", 0.0, 0.3), (4, " simple.", 0.5, 0.4)],
+        ])
+        session = d.ParakeetSession(model)
+        session.transcribe(np.ones(3 * d.SAMPLE_RATE, dtype=np.float32))
+        self.assertEqual(session.transcribe(np.ones(d.SAMPLE_RATE, dtype=np.float32)), "Une architecture simple.")
+        self.assertEqual(model.calls[-1].size, d.SAMPLE_RATE)
+        self.assertEqual(session.context_retries, 1)
+
+    def test_short_first_chunk_uses_its_real_duration_as_context(self):
+        model = self.model([
+            [(1, "Bonjour.", 0.1, 0.3)],
+            [(1, "Bonjour.", 0.1, 0.3), (2, " Demain.", 1.1, 0.4)],
+        ])
+        session = d.ParakeetSession(model)
+        first = np.ones(d.SAMPLE_RATE, dtype=np.float32)
+        session.transcribe(first)
+        self.assertEqual(session.transcribe(first), "Bonjour. Demain.")
+        self.assertEqual(model.calls[-1].size, 2 * d.SAMPLE_RATE)
+        self.assertEqual(session._tokens[-1].start, 1.1)
+
+    def test_token_center_after_boundary_does_not_allow_a_lossy_sdk_join(self):
+        model = self.model([
+            [(1, "Une", 0.0, 0.3), (2, " archi", 2.95, 0.05)],
+            [(2, " archi", 1.95, 0.3), (3, "tecture", 2.25, 0.2), (4, " simple.", 2.6, 0.2)],
+            [(3, "tecture", 0.0, 0.2), (4, " simple.", 0.6, 0.2)],
+        ])
+        session = d.ParakeetSession(model)
+        session.transcribe(np.ones(3 * d.SAMPLE_RATE, dtype=np.float32))
+        self.assertEqual(session.transcribe(np.ones(d.SAMPLE_RATE, dtype=np.float32)),
+                         "Une architecture simple.")
+        self.assertEqual(session.context_retries, 1)
+
+    def test_changed_wordpieces_can_revise_the_full_snapshot(self):
+        model = self.model([
+            [(1, "On", 0.1, 0.3), (2, " prépare", 1.2, 0.2),
+             (3, " la", 1.5, 0.2), (4, " version.", 2.5, 0.3)],
+            [(2, " prépare", 0.2, 0.2), (5, " une", 0.5, 0.2),
+             (6, " version", 1.5, 0.3), (7, " demain.", 2.5, 0.3)],
+        ])
+        session = d.ParakeetSession(model)
+        self.assertEqual(session.transcribe(np.ones(3 * d.SAMPLE_RATE, dtype=np.float32)),
+                         "On prépare la version.")
+        self.assertEqual(session.transcribe(np.ones(d.SAMPLE_RATE, dtype=np.float32)),
+                         "On prépare une version demain.")
+
+    def test_repeated_words_keep_distinct_timestamps(self):
+        model = self.model([
+            [(1, "Oui", 0.1, 0.2), (2, " oui", 1.5, 0.2)],
+            [(2, " oui", 0.5, 0.2), (2, " oui", 2.2, 0.2), (3, " demain.", 2.5, 0.3)],
+        ])
+        session = d.ParakeetSession(model)
+        session.transcribe(np.ones(3 * d.SAMPLE_RATE, dtype=np.float32))
+        self.assertEqual(session.transcribe(np.ones(d.SAMPLE_RATE, dtype=np.float32)), "Oui oui oui demain.")
+
+    def test_silence_never_retranscribes_previous_words(self):
+        model = self.model([[(1, "Bonjour.", 0.1, 0.3)]])
+        session = d.ParakeetSession(model)
+        session.transcribe(np.ones(d.SAMPLE_RATE, dtype=np.float32))
+        self.assertEqual(session.transcribe(np.zeros(0, dtype=np.float32)), "")
+        self.assertEqual(session.transcribe(np.zeros(3 * d.SAMPLE_RATE, dtype=np.float32)), "")
+        self.assertEqual(len(model.calls), 1)
+        self.assertFalse(np.any(session._audio_context))
+        self.assertEqual(session._audio_samples, 4 * d.SAMPLE_RATE)
+
+    def test_context_is_private_to_each_dictation(self):
+        model = self.model([[(1, "Bonjour.", 0.1, 0.3)], [(2, "Bonsoir.", 0.1, 0.3)]])
+        d.ParakeetSession(model).transcribe(np.ones(3 * d.SAMPLE_RATE, dtype=np.float32))
+        session = d.ParakeetSession(model)
+        self.assertEqual(session.transcribe(np.ones(d.SAMPLE_RATE, dtype=np.float32)), "Bonsoir.")
+        self.assertEqual(model.calls[-1].size, d.SAMPLE_RATE)
+
+
+class RevisedPartialTests(unittest.IsolatedAsyncioTestCase):
+    async def test_final_replaces_partial_instead_of_concatenating_it(self):
+        class Session(d.MockSession):
+            replaces_text = True
+
+            def step(self, **kwargs):
+                if self.closed:
+                    self._done = True
+                    return ["Une architecture simple."]
+                if self.samples:
+                    self.samples = 0
+                    return ["Une archi"]
+                return []
+
+        class Engines(d.MockEngines):
+            def create_session(self, hint=""):
+                return Session()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            service = d.DictationService(Engines(), d.Lexicon(Path(tmp) / "lexicon.db"))
+            service.status = "ready"
+            socket = WakeDuringAudioTests.Socket()
+            conn = d.DictationConnection(service, socket)
+            try:
+                await conn.start({})
+                conn.feed(np.ones(1600, dtype="<f4").tobytes())
+                for _ in range(100):
+                    if any(m["type"] == "partial" for m in socket.messages):
+                        break
+                    await asyncio.sleep(0.001)
+                self.assertTrue(any(m.get("text") == "Une archi" for m in socket.messages))
+                await conn.stop()
+                final = next(m for m in socket.messages if m["type"] == "final")
+                self.assertEqual(final["raw"], "Une architecture simple.")
+            finally:
+                await conn.reset()
+                service.mlx.pool.shutdown(wait=True)
 
 
 class LexiconTests(unittest.TestCase):

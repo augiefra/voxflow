@@ -20,6 +20,9 @@ Protocole (WebSocket, 127.0.0.1 uniquement, jeton obligatoire) :
               | {"type":"final","raw":...,"text":...,"lexicon_terms":[...],"timings":{...}}
               | {"type":"error","message":...}
 
+Le champ `text` de `partial` est le texte complet courant, éventuellement révisé,
+à remplacer à chaque réception ; ce n'est pas un fragment à concaténer.
+
 Toutes les opérations MLX passent par un unique thread (MLX n'est pas
 thread-safe) : chargement, transcription et génération Qwen.
 """
@@ -693,15 +696,82 @@ class ChunkedSession:
 
 
 class ParakeetSession(ChunkedSession):
-    """Même capture progressive, avec le décodeur non autorégressif Parakeet.
-    Ce moteur n'accepte pas le prompt textuel de Whisper."""
+    """Réutilise un peu d'audio pour garder le contexte entre les tranches.
+    Parakeet n'accepte pas le prompt textuel de Whisper. Les horodatages servent
+    à fusionner le chevauchement, y compris quand un mot franchit une coupure.
+    Le texte partiel est une version complète qui peut encore être corrigée."""
+
+    CONTEXT_SECONDS = 2.0
+    replaces_text = True
+
+    def __init__(self, model, hint: str = "") -> None:
+        super().__init__(model, hint)
+        self._audio_context = np.zeros(0, dtype=np.float32)
+        self._audio_samples = 0
+        self._tokens = []
+        self.context_retries = 0
 
     def transcribe(self, audio: np.ndarray) -> str:
-        if audio.size == 0 or not np.any(audio):
+        if audio.size == 0:
+            return ""
+        prefix_samples = self._audio_context.size
+        audio_start = self._audio_samples / SAMPLE_RATE
+        offset = audio_start - prefix_samples / SAMPLE_RATE
+        combined = np.concatenate((self._audio_context, audio)) if prefix_samples else audio
+        self._audio_samples += audio.size
+        self._audio_context = combined[-int(self.CONTEXT_SECONDS * SAMPLE_RATE):].copy()
+        # Ne relance pas le contexte déjà transcrit lorsqu'il ne reste que du silence.
+        if not np.any(audio):
             return ""
         import mlx.core as mx
+        from mlx_audio.stt.models.nemo.alignment import (
+            merge_longest_common_subsequence,
+            merge_longest_contiguous,
+        )
 
-        return self.model.generate(mx.array(audio)).text.strip()
+        result = self.model.generate(mx.array(combined))
+        tokens = [token for sentence in result.sentences for token in sentence.tokens]
+        for token in tokens:
+            token.start += offset
+            token.end = token.start + token.duration
+        if self._tokens:
+            # Un unique token peut franchir la frontière (« archi » + « tecture »).
+            # Le secours temporel du SDK peut alors jeter ses deux occurrences.
+            # Une identité proche en temps fournit un raccord sans cette perte.
+            last = self._tokens[-1]
+            anchors = [(abs(token.start - last.start), i) for i, token in enumerate(tokens)
+                       if (token.id == last.id and abs(token.start - last.start) <= 0.16
+                           and token.start + token.duration / 2 < audio_start)]
+            if anchors:
+                self._tokens.extend(tokens[min(anchors)[1] + 1:])
+            else:
+                matched = any(
+                    old.id == token.id and abs(old.start - token.start) <= 0.32
+                    and old.start + old.duration / 2 < audio_start
+                    and token.start + token.duration / 2 < audio_start
+                    for old in self._tokens if old.end > offset
+                    for token in tokens if token.start < audio_start)
+                if tokens and tokens[0].start < audio_start and not matched:
+                    # Le modèle a réinterprété tout le préfixe : le découpage du
+                    # secours SDK pourrait perdre un mot. Revenir à la nouvelle
+                    # tranche seule plutôt que fusionner deux textes sans ancre.
+                    self.context_retries += 1
+                    result = self.model.generate(mx.array(audio))
+                    for sentence in result.sentences:
+                        for token in sentence.tokens:
+                            token.start += audio_start
+                            token.end = token.start + token.duration
+                            self._tokens.append(token)
+                else:
+                    try:
+                        self._tokens = merge_longest_contiguous(
+                            self._tokens, tokens, overlap_duration=prefix_samples / SAMPLE_RATE)
+                    except RuntimeError:
+                        self._tokens = merge_longest_common_subsequence(
+                            self._tokens, tokens, overlap_duration=prefix_samples / SAMPLE_RATE)
+        else:
+            self._tokens = tokens
+        return "".join(token.text for token in self._tokens).strip()
 
 
 class MLXEngines:
@@ -1140,7 +1210,10 @@ class DictationConnection:
                     log.warning("Réveil anticipé indisponible, transcription normale", exc_info=True)
             deltas = await self.service.mlx.run(session.step, max_decode_tokens=16)
             if deltas:
-                self.deltas.extend(deltas)
+                if getattr(session, "replaces_text", False):
+                    self.deltas = list(deltas)
+                else:
+                    self.deltas.extend(deltas)
                 await self.send({"type": "partial", "text": "".join(self.deltas)})
             elif not getattr(session, "closed", False) and not getattr(session, "_audio_closed", False):
                 await asyncio.sleep(0.03)

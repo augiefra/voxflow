@@ -1,0 +1,1665 @@
+{
+  "scope": "ASR only; virtual 100 ms capture frames, no real-time wait; same single loaded model for A/B; synthetic audio",
+  "rows": [
+    {
+      "case": "court",
+      "reference": "Bonjour Julien, je te rappelle demain matin.",
+      "seconds": 2.93,
+      "baseline": {
+        "raw": "Bonjour Julien, je te rappelle demain matin.",
+        "tail_ms": 56.7,
+        "total_work_ms": 58.4,
+        "calls": [
+          {
+            "seconds": 2.935,
+            "ms": 56.5
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Bonjour Julien, je te rappelle demain matin.",
+        "tail_ms": 37.5,
+        "total_work_ms": 39.2,
+        "calls": [
+          {
+            "seconds": 2.935,
+            "ms": 37.4
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 18,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "message",
+      "reference": "Peux-tu vérifier le devis et me confirmer le montant avant vendredi ?",
+      "seconds": 3.58,
+      "baseline": {
+        "raw": "Peux-tu vérifier le devis et me confirmer le montant avant vendredi ?",
+        "tail_ms": 44.0,
+        "total_work_ms": 46.4,
+        "calls": [
+          {
+            "seconds": 3.579,
+            "ms": 43.7
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Peux-tu vérifier le devis et me confirmer le montant avant vendredi ?",
+        "tail_ms": 43.0,
+        "total_work_ms": 45.1,
+        "calls": [
+          {
+            "seconds": 3.579,
+            "ms": 42.9
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 26,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "noms",
+      "reference": "Je travaille sur FacilAbo et EuroVolt avec Eric Cologni à Allauch.",
+      "seconds": 4.3,
+      "baseline": {
+        "raw": "Je travaille sur Facile Abo et Eurovolt avec Eric Colonier à Aloche.",
+        "tail_ms": 50.1,
+        "total_work_ms": 52.9,
+        "calls": [
+          {
+            "seconds": 4.295,
+            "ms": 49.9
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.3636
+      },
+      "candidate": {
+        "raw": "Je travaille sur Facile Abo et Eurovolt avec Eric Colonier à Aloche.",
+        "tail_ms": 48.6,
+        "total_work_ms": 50.9,
+        "calls": [
+          {
+            "seconds": 4.295,
+            "ms": 48.4
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 24,
+        "context_retries": 0,
+        "wer": 0.3636
+      }
+    },
+    {
+      "case": "reprise",
+      "reference": "Euh, je passe mardi, non pardon, mercredi matin pour récupérer le dossier.",
+      "seconds": 5.38,
+      "baseline": {
+        "raw": "Euh, je passe mardi, non pardon, mercredi matin pour récupérer le dossier.",
+        "tail_ms": 53.0,
+        "total_work_ms": 56.3,
+        "calls": [
+          {
+            "seconds": 5.385,
+            "ms": 52.8
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Euh, je passe mardi, non pardon, mercredi matin pour récupérer le dossier.",
+        "tail_ms": 51.4,
+        "total_work_ms": 54.3,
+        "calls": [
+          {
+            "seconds": 5.385,
+            "ms": 51.2
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 29,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "pause",
+      "reference": "Le devis est parti ce matin.  Tu peux le relire avant demain.  Merci Julien, bonne journée.",
+      "seconds": 6.79,
+      "baseline": {
+        "raw": "Le devis est parti ce matin. Tu peux le relire avant demain. Merci Julien, bonne journée.",
+        "tail_ms": 32.2,
+        "total_work_ms": 99.2,
+        "calls": [
+          {
+            "seconds": 2.0,
+            "ms": 30.4
+          },
+          {
+            "seconds": 2.3,
+            "ms": 33.0
+          },
+          {
+            "seconds": 2.489,
+            "ms": 32.1
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Le devis est parti ce matin. Tu peux le relire avant demain. Merci Julien, bonne journée.",
+        "tail_ms": 43.1,
+        "total_work_ms": 118.0,
+        "calls": [
+          {
+            "seconds": 2.0,
+            "ms": 30.3
+          },
+          {
+            "seconds": 4.3,
+            "ms": 41.5
+          },
+          {
+            "seconds": 4.489,
+            "ms": 42.9
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 34,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "long",
+      "reference": "Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à quinze heures avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée.",
+      "seconds": 20.91,
+      "baseline": {
+        "raw": "Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à 15h avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée.",
+        "tail_ms": 167.1,
+        "total_work_ms": 181.0,
+        "calls": [
+          {
+            "seconds": 20.914,
+            "ms": 166.7
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0317
+      },
+      "candidate": {
+        "raw": "Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à 15h avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée.",
+        "tail_ms": 153.0,
+        "total_work_ms": 166.6,
+        "calls": [
+          {
+            "seconds": 20.914,
+            "ms": 152.7
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 132,
+        "context_retries": 0,
+        "wer": 0.0317
+      }
+    },
+    {
+      "case": "merci",
+      "reference": "Merci pour ton aide, je viens de recevoir les documents.",
+      "seconds": 3.49,
+      "baseline": {
+        "raw": "Merci pour ton aide, je viens de recevoir les documents.",
+        "tail_ms": 37.6,
+        "total_work_ms": 39.4,
+        "calls": [
+          {
+            "seconds": 3.492,
+            "ms": 37.5
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Merci pour ton aide, je viens de recevoir les documents.",
+        "tail_ms": 37.0,
+        "total_work_ms": 38.8,
+        "calls": [
+          {
+            "seconds": 3.492,
+            "ms": 36.9
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 18,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "question",
+      "reference": "Est-ce que tu peux déplacer notre rendez-vous à jeudi après-midi ?",
+      "seconds": 3.46,
+      "baseline": {
+        "raw": "Est-ce que tu peux déplacer notre rendez-vous à jeudi après-midi ?",
+        "tail_ms": 41.9,
+        "total_work_ms": 44.1,
+        "calls": [
+          {
+            "seconds": 3.457,
+            "ms": 41.8
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Est-ce que tu peux déplacer notre rendez-vous à jeudi après-midi ?",
+        "tail_ms": 42.3,
+        "total_work_ms": 43.9,
+        "calls": [
+          {
+            "seconds": 3.457,
+            "ms": 42.2
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 26,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "montant",
+      "reference": "Le montant total est de mille deux cent cinquante euros hors taxes.",
+      "seconds": 3.49,
+      "baseline": {
+        "raw": "Le montant total est de 1250 euros hors taxes.",
+        "tail_ms": 39.0,
+        "total_work_ms": 40.9,
+        "calls": [
+          {
+            "seconds": 3.492,
+            "ms": 38.9
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.3333
+      },
+      "candidate": {
+        "raw": "Le montant total est de 1250 euros hors taxes.",
+        "tail_ms": 37.9,
+        "total_work_ms": 39.6,
+        "calls": [
+          {
+            "seconds": 3.492,
+            "ms": 37.8
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 20,
+        "context_retries": 0,
+        "wer": 0.3333
+      }
+    },
+    {
+      "case": "horaire",
+      "reference": "La réunion commence à neuf heures trente et se termine à onze heures.",
+      "seconds": 3.54,
+      "baseline": {
+        "raw": "La réunion commence à 9h30 et se termine à 11h.",
+        "tail_ms": 40.3,
+        "total_work_ms": 42.2,
+        "calls": [
+          {
+            "seconds": 3.538,
+            "ms": 40.2
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.3846
+      },
+      "candidate": {
+        "raw": "La réunion commence à 9h30 et se termine à 11h.",
+        "tail_ms": 40.5,
+        "total_work_ms": 42.1,
+        "calls": [
+          {
+            "seconds": 3.538,
+            "ms": 40.4
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 22,
+        "context_retries": 0,
+        "wer": 0.3846
+      }
+    },
+    {
+      "case": "date",
+      "reference": "Nous sommes le trois novembre deux mille vingt-six.",
+      "seconds": 2.73,
+      "baseline": {
+        "raw": "Nous sommes le 3 novembre 2026.",
+        "tail_ms": 36.1,
+        "total_work_ms": 37.7,
+        "calls": [
+          {
+            "seconds": 2.726,
+            "ms": 36.0
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.5556
+      },
+      "candidate": {
+        "raw": "Nous sommes le 3 novembre 2026.",
+        "tail_ms": 35.9,
+        "total_work_ms": 37.1,
+        "calls": [
+          {
+            "seconds": 2.726,
+            "ms": 35.7
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 15,
+        "context_retries": 0,
+        "wer": 0.5556
+      }
+    },
+    {
+      "case": "liste",
+      "reference": "Il faut acheter du pain, du lait, des pommes et deux bouteilles d'eau.",
+      "seconds": 3.61,
+      "baseline": {
+        "raw": "Il faut acheter du pain, du lait, des pommes et deux bouteilles d'eau.",
+        "tail_ms": 44.4,
+        "total_work_ms": 46.4,
+        "calls": [
+          {
+            "seconds": 3.609,
+            "ms": 44.3
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Il faut acheter du pain, du lait, des pommes et deux bouteilles d'eau.",
+        "tail_ms": 43.3,
+        "total_work_ms": 45.1,
+        "calls": [
+          {
+            "seconds": 3.609,
+            "ms": 43.2
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 28,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "hesitation",
+      "reference": "Euh, je voulais te dire que le dossier est prêt. Hum, tu peux passer demain.",
+      "seconds": 4.61,
+      "baseline": {
+        "raw": "Euh, je voulais te dire que le dossier est prêt. Hum, tu peux passer demain.",
+        "tail_ms": 47.0,
+        "total_work_ms": 49.5,
+        "calls": [
+          {
+            "seconds": 4.607,
+            "ms": 46.8
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Euh, je voulais te dire que le dossier est prêt. Hum, tu peux passer demain.",
+        "tail_ms": 45.5,
+        "total_work_ms": 48.6,
+        "calls": [
+          {
+            "seconds": 4.607,
+            "ms": 45.4
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 31,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "correction",
+      "reference": "Réserve deux places, enfin non, trois places pour vendredi soir.",
+      "seconds": 4.56,
+      "baseline": {
+        "raw": "Réserve 2 places, enfin non, trois places pour vendredi soir.",
+        "tail_ms": 43.0,
+        "total_work_ms": 45.7,
+        "calls": [
+          {
+            "seconds": 4.56,
+            "ms": 42.9
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.1
+      },
+      "candidate": {
+        "raw": "Réserve 2 places, enfin non, trois places pour vendredi soir.",
+        "tail_ms": 42.2,
+        "total_work_ms": 44.3,
+        "calls": [
+          {
+            "seconds": 4.56,
+            "ms": 42.1
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 24,
+        "context_retries": 0,
+        "wer": 0.1
+      }
+    },
+    {
+      "case": "repetition",
+      "reference": "Je je voulais vérifier que tu avais bien reçu mon message.",
+      "seconds": 3.35,
+      "baseline": {
+        "raw": "Je voulais vérifier que tu avais bien reçu mon message.",
+        "tail_ms": 42.9,
+        "total_work_ms": 44.7,
+        "calls": [
+          {
+            "seconds": 3.355,
+            "ms": 42.8
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0909
+      },
+      "candidate": {
+        "raw": "Je voulais vérifier que tu avais bien reçu mon message.",
+        "tail_ms": 41.6,
+        "total_work_ms": 43.1,
+        "calls": [
+          {
+            "seconds": 3.355,
+            "ms": 41.4
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 22,
+        "context_retries": 0,
+        "wer": 0.0909
+      }
+    },
+    {
+      "case": "intensite",
+      "reference": "C'est très très important de conserver la dernière version du document.",
+      "seconds": 3.84,
+      "baseline": {
+        "raw": "C'est très très important de conserver la dernière version du document.",
+        "tail_ms": 40.6,
+        "total_work_ms": 42.6,
+        "calls": [
+          {
+            "seconds": 3.839,
+            "ms": 40.5
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "C'est très très important de conserver la dernière version du document.",
+        "tail_ms": 39.1,
+        "total_work_ms": 40.9,
+        "calls": [
+          {
+            "seconds": 3.839,
+            "ms": 39.0
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 20,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "genre",
+      "reference": "Ce genre de problème demande une vérification avant de relancer le service.",
+      "seconds": 4.45,
+      "baseline": {
+        "raw": "Ce genre de problème demande une vérification avant de relancer le service.",
+        "tail_ms": 42.4,
+        "total_work_ms": 45.0,
+        "calls": [
+          {
+            "seconds": 4.454,
+            "ms": 42.2
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Ce genre de problème demande une vérification avant de relancer le service.",
+        "tail_ms": 41.2,
+        "total_work_ms": 43.3,
+        "calls": [
+          {
+            "seconds": 4.454,
+            "ms": 41.0
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 23,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "en_fait",
+      "reference": "Le client habite en fait à Marseille depuis plusieurs années.",
+      "seconds": 3.22,
+      "baseline": {
+        "raw": "Le client habite en fait à Marseille depuis plusieurs années.",
+        "tail_ms": 39.6,
+        "total_work_ms": 41.2,
+        "calls": [
+          {
+            "seconds": 3.225,
+            "ms": 39.5
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Le client habite en fait à Marseille depuis plusieurs années.",
+        "tail_ms": 39.3,
+        "total_work_ms": 40.8,
+        "calls": [
+          {
+            "seconds": 3.225,
+            "ms": 39.2
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 21,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "prenom",
+      "reference": "Ben vient dîner ce soir avec Julie et Nicolas.",
+      "seconds": 2.77,
+      "baseline": {
+        "raw": "Ben vient dîner ce soir avec Julie et Nicolas.",
+        "tail_ms": 38.8,
+        "total_work_ms": 40.3,
+        "calls": [
+          {
+            "seconds": 2.772,
+            "ms": 38.7
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Ben vient dîner ce soir avec Julie et Nicolas.",
+        "tail_ms": 38.1,
+        "total_work_ms": 39.3,
+        "calls": [
+          {
+            "seconds": 2.772,
+            "ms": 38.0
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 19,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "telephone",
+      "reference": "Allô, tu m'entends ? Je te rappelle dans cinq minutes.",
+      "seconds": 3.42,
+      "baseline": {
+        "raw": "Allô, tu m'entends ? Je te rappelle dans 5 minutes.",
+        "tail_ms": 40.3,
+        "total_work_ms": 42.0,
+        "calls": [
+          {
+            "seconds": 3.422,
+            "ms": 40.1
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.1
+      },
+      "candidate": {
+        "raw": "Allô, tu m'entends ? Je te rappelle dans 5 minutes.",
+        "tail_ms": 39.5,
+        "total_work_ms": 41.3,
+        "calls": [
+          {
+            "seconds": 3.422,
+            "ms": 39.4
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 21,
+        "context_retries": 0,
+        "wer": 0.1
+      }
+    },
+    {
+      "case": "lieu",
+      "reference": "On se retrouve à Allauch demain matin pour prendre un café.",
+      "seconds": 3.14,
+      "baseline": {
+        "raw": "On se retrouve à Alloge demain matin pour prendre un café.",
+        "tail_ms": 42.0,
+        "total_work_ms": 43.8,
+        "calls": [
+          {
+            "seconds": 3.144,
+            "ms": 41.8
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0909
+      },
+      "candidate": {
+        "raw": "On se retrouve à Alloge demain matin pour prendre un café.",
+        "tail_ms": 40.9,
+        "total_work_ms": 43.0,
+        "calls": [
+          {
+            "seconds": 3.144,
+            "ms": 40.8
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 22,
+        "context_retries": 0,
+        "wer": 0.0909
+      }
+    },
+    {
+      "case": "projet",
+      "reference": "La prochaine version de FacilAbo corrige le problème de synchronisation.",
+      "seconds": 4.46,
+      "baseline": {
+        "raw": "La prochaine version de Facile Abo corrige le problème de synchronisation.",
+        "tail_ms": 47.0,
+        "total_work_ms": 50.4,
+        "calls": [
+          {
+            "seconds": 4.456,
+            "ms": 46.8
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.2
+      },
+      "candidate": {
+        "raw": "La prochaine version de Facile Abo corrige le problème de synchronisation.",
+        "tail_ms": 45.4,
+        "total_work_ms": 49.2,
+        "calls": [
+          {
+            "seconds": 4.456,
+            "ms": 45.2
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 25,
+        "context_retries": 0,
+        "wer": 0.2
+      }
+    },
+    {
+      "case": "energie",
+      "reference": "EuroVolt affiche maintenant la consommation électrique de la semaine.",
+      "seconds": 3.96,
+      "baseline": {
+        "raw": "Eurovolt affiche maintenant la consommation électrique de la semaine.",
+        "tail_ms": 44.6,
+        "total_work_ms": 47.2,
+        "calls": [
+          {
+            "seconds": 3.957,
+            "ms": 44.4
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Eurovolt affiche maintenant la consommation électrique de la semaine.",
+        "tail_ms": 43.0,
+        "total_work_ms": 45.2,
+        "calls": [
+          {
+            "seconds": 3.957,
+            "ms": 42.8
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 22,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "technique",
+      "reference": "Vérifie la requête de l'API et le fichier de configuration du serveur.",
+      "seconds": 4.34,
+      "baseline": {
+        "raw": "Vérifie la requête de l'API et le fichier de configuration du serveur.",
+        "tail_ms": 45.9,
+        "total_work_ms": 48.7,
+        "calls": [
+          {
+            "seconds": 4.341,
+            "ms": 45.7
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Vérifie la requête de l'API et le fichier de configuration du serveur.",
+        "tail_ms": 45.4,
+        "total_work_ms": 47.8,
+        "calls": [
+          {
+            "seconds": 4.341,
+            "ms": 45.2
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 29,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "anglais",
+      "reference": "Le pull request est prêt pour la code review et les tests passent.",
+      "seconds": 3.55,
+      "baseline": {
+        "raw": "Le pull request est prêt pour la code review et les tests passes.",
+        "tail_ms": 41.8,
+        "total_work_ms": 44.2,
+        "calls": [
+          {
+            "seconds": 3.55,
+            "ms": 41.7
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0769
+      },
+      "candidate": {
+        "raw": "Le pull request est prêt pour la code review et les tests passes.",
+        "tail_ms": 41.5,
+        "total_work_ms": 43.3,
+        "calls": [
+          {
+            "seconds": 3.55,
+            "ms": 41.3
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 24,
+        "context_retries": 0,
+        "wer": 0.0769
+      }
+    },
+    {
+      "case": "ordre",
+      "reference": "Écris-moi un mail pour annuler le rendez-vous de demain.",
+      "seconds": 2.75,
+      "baseline": {
+        "raw": "Écris-moi un mail pour annuler le rendez-vous de demain.",
+        "tail_ms": 39.9,
+        "total_work_ms": 41.6,
+        "calls": [
+          {
+            "seconds": 2.749,
+            "ms": 39.7
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Écris-moi un mail pour annuler le rendez-vous de demain.",
+        "tail_ms": 40.8,
+        "total_work_ms": 42.2,
+        "calls": [
+          {
+            "seconds": 2.749,
+            "ms": 40.6
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 24,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "question_dictee",
+      "reference": "Quelle est la capitale de la France et combien de personnes y vivent ?",
+      "seconds": 3.5,
+      "baseline": {
+        "raw": "Quelle est la capitale de la France et combien de personnes y vivent ?",
+        "tail_ms": 40.9,
+        "total_work_ms": 43.4,
+        "calls": [
+          {
+            "seconds": 3.503,
+            "ms": 40.7
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Quelle est la capitale de la France et combien de personnes y vivent ?",
+        "tail_ms": 40.0,
+        "total_work_ms": 41.9,
+        "calls": [
+          {
+            "seconds": 3.503,
+            "ms": 39.8
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 23,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "negation",
+      "reference": "Je ne veux surtout pas supprimer les changements déjà présents.",
+      "seconds": 3.34,
+      "baseline": {
+        "raw": "Je ne veux surtout pas supprimer les changements déjà présents.",
+        "tail_ms": 39.4,
+        "total_work_ms": 41.3,
+        "calls": [
+          {
+            "seconds": 3.343,
+            "ms": 39.2
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Je ne veux surtout pas supprimer les changements déjà présents.",
+        "tail_ms": 40.7,
+        "total_work_ms": 42.5,
+        "calls": [
+          {
+            "seconds": 3.343,
+            "ms": 40.5
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 22,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "pause_reprise",
+      "reference": "Nous livrons mardi.  Non, pardon, mercredi.  Préviens le client.",
+      "seconds": 5.98,
+      "baseline": {
+        "raw": "Nous livrons mardi. Non, pardon, mercredi. Prévient le client.",
+        "tail_ms": 30.3,
+        "total_work_ms": 100.2,
+        "calls": [
+          {
+            "seconds": 1.5,
+            "ms": 29.5
+          },
+          {
+            "seconds": 3.0,
+            "ms": 36.0
+          },
+          {
+            "seconds": 1.477,
+            "ms": 30.1
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.1111
+      },
+      "candidate": {
+        "raw": "Nous livrons mardi. Non, pardon, mercredi. Prévient le client.",
+        "tail_ms": 38.1,
+        "total_work_ms": 109.5,
+        "calls": [
+          {
+            "seconds": 1.5,
+            "ms": 28.5
+          },
+          {
+            "seconds": 4.5,
+            "ms": 39.5
+          },
+          {
+            "seconds": 3.477,
+            "ms": 37.9
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 25,
+        "context_retries": 0,
+        "wer": 0.1111
+      }
+    },
+    {
+      "case": "paragraphes",
+      "reference": "Bonjour Sophie.  Merci pour ton retour sur le devis.  Nous pouvons confirmer la commande et prévoir une livraison la semaine prochaine.  Bonne journée et à bientôt.",
+      "seconds": 10.74,
+      "baseline": {
+        "raw": "Bonjour Sophie. Merci pour ton retour sur le devis. Nous pouvons confirmer la commande et prévoir une livraison la semaine prochaine. Bonne journée et à bientôt.",
+        "tail_ms": 32.8,
+        "total_work_ms": 148.1,
+        "calls": [
+          {
+            "seconds": 1.5,
+            "ms": 29.7
+          },
+          {
+            "seconds": 2.6,
+            "ms": 34.1
+          },
+          {
+            "seconds": 4.8,
+            "ms": 44.7
+          },
+          {
+            "seconds": 1.837,
+            "ms": 32.6
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Bonjour Sophie. Merci pour ton retour sur le devis. Nous pouvons confirmer la commande et prévoir une livraison la semaine prochaine. Bonne journée et à bientôt.",
+        "tail_ms": 42.5,
+        "total_work_ms": 178.4,
+        "calls": [
+          {
+            "seconds": 1.5,
+            "ms": 29.9
+          },
+          {
+            "seconds": 4.1,
+            "ms": 40.8
+          },
+          {
+            "seconds": 6.8,
+            "ms": 58.1
+          },
+          {
+            "seconds": 3.837,
+            "ms": 42.3
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 60,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "forced_boundary",
+      "reference": "Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à quinze heures avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée. Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à quinze heures avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée.",
+      "seconds": 41.83,
+      "baseline": {
+        "raw": "Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à 15h avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée. Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à 15h avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée.",
+        "tail_ms": 143.8,
+        "total_work_ms": 343.7,
+        "calls": [
+          {
+            "seconds": 21.95,
+            "ms": 162.2
+          },
+          {
+            "seconds": 19.879,
+            "ms": 143.4
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0317
+      },
+      "candidate": {
+        "raw": "Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à 15h avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée. Bonjour Julien. Le devis est parti ce matin et les documents sont dans le dossier partagé. Tu peux vérifier les montants et me confirmer la date de livraison. Nous avons prévu une réunion mercredi à 15h avec toute l'équipe. Si tu préfères jeudi, préviens-moi avant demain midi. Je préparerai ensuite les derniers éléments pour le client. Merci et bonne journée.",
+        "tail_ms": 163.8,
+        "total_work_ms": 358.0,
+        "calls": [
+          {
+            "seconds": 21.95,
+            "ms": 161.2
+          },
+          {
+            "seconds": 21.879,
+            "ms": 163.3
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 264,
+        "context_retries": 0,
+        "wer": 0.0317
+      }
+    },
+    {
+      "case": "quiet_with_pauses",
+      "reference": "Bonjour Julien, je te rappelle demain matin. Bonjour Julien, je te rappelle demain matin.",
+      "seconds": 6.37,
+      "baseline": {
+        "raw": "Bonjour Julien, je te rappelle demain matin. Bonjour Julien, je te rappelle demain matin.",
+        "tail_ms": 37.1,
+        "total_work_ms": 78.3,
+        "calls": [
+          {
+            "seconds": 3.2,
+            "ms": 37.8
+          },
+          {
+            "seconds": 3.17,
+            "ms": 36.9
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Bonjour Julien, je te rappelle demain matin. Bonjour Julien, je te rappelle demain matin.",
+        "tail_ms": 49.4,
+        "total_work_ms": 90.6,
+        "calls": [
+          {
+            "seconds": 3.2,
+            "ms": 38.1
+          },
+          {
+            "seconds": 5.17,
+            "ms": 49.2
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 36,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "digital_silence",
+      "reference": "",
+      "seconds": 3.0,
+      "baseline": {
+        "raw": "",
+        "tail_ms": 0.1,
+        "total_work_ms": 1.7,
+        "calls": [],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "",
+        "tail_ms": 0.1,
+        "total_work_ms": 1.3,
+        "calls": [],
+        "context_bytes": 128000,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_prevu_1.0",
+      "reference": "Je t’envoie le document comme tu l’avais prévu.",
+      "seconds": 3.33,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Prévu.",
+        "tail_ms": 26.6,
+        "total_work_ms": 62.5,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 34.3
+          },
+          {
+            "seconds": 1.033,
+            "ms": 26.5
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais prévu.",
+        "tail_ms": 38.0,
+        "total_work_ms": 73.3,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.7
+          },
+          {
+            "seconds": 3.033,
+            "ms": 37.9
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 18,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_prevu_1.2",
+      "reference": "Je t’envoie le document comme tu l’avais prévu.",
+      "seconds": 3.24,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Prévu.",
+        "tail_ms": 25.9,
+        "total_work_ms": 61.5,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.9
+          },
+          {
+            "seconds": 0.935,
+            "ms": 25.8
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais prévu.",
+        "tail_ms": 35.9,
+        "total_work_ms": 70.3,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 32.9
+          },
+          {
+            "seconds": 2.935,
+            "ms": 35.8
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 18,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_prepare_1.0",
+      "reference": "Je t’envoie le document comme tu l’avais préparé.",
+      "seconds": 3.44,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Préparer.",
+        "tail_ms": 28.1,
+        "total_work_ms": 63.6,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.5
+          },
+          {
+            "seconds": 1.138,
+            "ms": 28.0
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.1
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais préparé.",
+        "tail_ms": 37.6,
+        "total_work_ms": 72.7,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.6
+          },
+          {
+            "seconds": 3.138,
+            "ms": 37.5
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 19,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_prepare_1.2",
+      "reference": "Je t’envoie le document comme tu l’avais préparé.",
+      "seconds": 3.32,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Préparer.",
+        "tail_ms": 27.2,
+        "total_work_ms": 62.2,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.2
+          },
+          {
+            "seconds": 1.022,
+            "ms": 27.1
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.1
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais préparé.",
+        "tail_ms": 36.9,
+        "total_work_ms": 72.7,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 34.0
+          },
+          {
+            "seconds": 3.022,
+            "ms": 36.8
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 19,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_precise_1.0",
+      "reference": "Je t’envoie le document comme tu l’avais précisé.",
+      "seconds": 3.5,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Préciser.",
+        "tail_ms": 27.5,
+        "total_work_ms": 62.2,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.0
+          },
+          {
+            "seconds": 1.196,
+            "ms": 27.3
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.1
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais précisé.",
+        "tail_ms": 39.3,
+        "total_work_ms": 74.8,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.6
+          },
+          {
+            "seconds": 3.196,
+            "ms": 39.1
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 19,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_precise_1.2",
+      "reference": "Je t’envoie le document comme tu l’avais précisé.",
+      "seconds": 3.37,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Précisé.",
+        "tail_ms": 28.2,
+        "total_work_ms": 64.2,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.9
+          },
+          {
+            "seconds": 1.071,
+            "ms": 28.0
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais précisé.",
+        "tail_ms": 38.6,
+        "total_work_ms": 74.0,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.5
+          },
+          {
+            "seconds": 3.071,
+            "ms": 38.4
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 19,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_presente_1.0",
+      "reference": "Je t’envoie le document comme tu l’avais présenté.",
+      "seconds": 3.48,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Présentez.",
+        "tail_ms": 27.8,
+        "total_work_ms": 64.5,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 34.1
+          },
+          {
+            "seconds": 1.184,
+            "ms": 27.6
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.1
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais présenté.",
+        "tail_ms": 38.8,
+        "total_work_ms": 74.9,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 34.0
+          },
+          {
+            "seconds": 3.184,
+            "ms": 38.6
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 20,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_presente_1.2",
+      "reference": "Je t’envoie le document comme tu l’avais présenté.",
+      "seconds": 3.36,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Présentez.",
+        "tail_ms": 26.8,
+        "total_work_ms": 62.7,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.7
+          },
+          {
+            "seconds": 1.061,
+            "ms": 26.7
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.1
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais présenté.",
+        "tail_ms": 37.4,
+        "total_work_ms": 72.9,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.5
+          },
+          {
+            "seconds": 3.061,
+            "ms": 37.3
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 20,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_phrase_1.0",
+      "reference": "Je t’envoie le document comme tu l’avais Donc si ce que je dis est ce que tu avais prévu.",
+      "seconds": 5.08,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Donc si ce que je dis est ce que tu avais prévu.",
+        "tail_ms": 38.3,
+        "total_work_ms": 74.3,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.3
+          },
+          {
+            "seconds": 2.779,
+            "ms": 38.1
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais. Donc si ce que je dis est ce que tu avais prévu.",
+        "tail_ms": 47.7,
+        "total_work_ms": 83.9,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.5
+          },
+          {
+            "seconds": 4.779,
+            "ms": 47.5
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 33,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    },
+    {
+      "case": "context_phrase_1.2",
+      "reference": "Je t’envoie le document comme tu l’avais Donc si ce que je dis est ce que tu avais prévu.",
+      "seconds": 4.69,
+      "baseline": {
+        "raw": "Je t'envoie le document comme tu l'avais. Donc si ce que je dis est ce que tu avais prévu.",
+        "tail_ms": 35.0,
+        "total_work_ms": 71.5,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 33.8
+          },
+          {
+            "seconds": 2.39,
+            "ms": 34.8
+          }
+        ],
+        "context_bytes": 0,
+        "tokens": 0,
+        "context_retries": 0,
+        "wer": 0.0
+      },
+      "candidate": {
+        "raw": "Je t'envoie le document comme tu l'avais. Donc si ce que je dis est ce que tu avais prévu.",
+        "tail_ms": 49.6,
+        "total_work_ms": 87.8,
+        "calls": [
+          {
+            "seconds": 2.3,
+            "ms": 35.4
+          },
+          {
+            "seconds": 4.39,
+            "ms": 49.5
+          }
+        ],
+        "context_bytes": 128000,
+        "tokens": 33,
+        "context_retries": 0,
+        "wer": 0.0
+      }
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "median_tail_ms": 39.9,
+      "mean_wer": 0.0691,
+      "max_context_bytes": 0
+    },
+    "candidate": {
+      "median_tail_ms": 40.8,
+      "mean_wer": 0.0574,
+      "max_context_bytes": 128000
+    }
+  },
+  "validation_note": "Development A/B before the final single-token boundary safeguard; that safeguard was then verified with the 70-test suite and the installed-app checks."
+}

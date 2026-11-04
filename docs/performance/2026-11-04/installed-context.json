@@ -1,0 +1,83 @@
+{
+  "version": "0.1.8",
+  "daemon_sha256": "315ae8d5f25674505b5c1bff3dbbb3338161fc075ff1d9cc654bf2090f721623",
+  "transport": "Installed app WebSocket; real-time synthetic audio; no microphone and no paste",
+  "rows": [
+    {
+      "case": "silence",
+      "tail_ms": 19.7,
+      "partials": 0,
+      "raw": "",
+      "text": "",
+      "timings": {
+        "audio_s": 0.6,
+        "asr_tail_ms": 17.3,
+        "release_ms": 0.2,
+        "wake_during_audio_ms": 0.0,
+        "total_after_stop_ms": 17.6
+      }
+    },
+    {
+      "case": "context_prepare",
+      "tail_ms": 97.3,
+      "partials": 2,
+      "raw": "Je t'envoie le document comme tu l'avais préparé.",
+      "text": "Je t'envoie le document comme tu l'avais préparé.",
+      "timings": {
+        "lexicon_ms": 3.2,
+        "audio_s": 3.44,
+        "asr_tail_ms": 87.5,
+        "release_ms": 5.7,
+        "wake_during_audio_ms": 862.5,
+        "total_after_stop_ms": 96.5
+      }
+    },
+    {
+      "case": "quiet_with_pauses",
+      "tail_ms": 220.6,
+      "partials": 2,
+      "raw": "Bonjour Julien, je te rappelle demain matin. Bonjour Julien, je te rappelle demain matin.",
+      "text": "Bonjour Julien, je te rappelle demain matin. Bonjour Julien, je te rappelle demain matin.",
+      "timings": {
+        "lexicon_ms": 3.6,
+        "audio_s": 6.37,
+        "asr_tail_ms": 212.5,
+        "release_ms": 3.6,
+        "wake_during_audio_ms": 0.0,
+        "total_after_stop_ms": 219.8
+      }
+    },
+    {
+      "case": "next_dictation",
+      "tail_ms": 160.7,
+      "partials": 1,
+      "raw": "Bonjour Julien, je te rappelle demain matin.",
+      "text": "Bonjour Julien, je te rappelle demain matin.",
+      "timings": {
+        "lexicon_ms": 1.7,
+        "audio_s": 2.93,
+        "asr_tail_ms": 156.7,
+        "release_ms": 1.6,
+        "wake_during_audio_ms": 0.0,
+        "total_after_stop_ms": 160.0
+      }
+    },
+    {
+      "case": "cleanup_reprise",
+      "tail_ms": 882.4,
+      "partials": 1,
+      "raw": "Euh, je passe mardi, non pardon, mercredi matin pour récupérer le dossier.",
+      "text": "Je passe mercredi matin pour récupérer le dossier.",
+      "timings": {
+        "lexicon_ms": 2.8,
+        "llm_chars": 69,
+        "llm_ms": 637.1,
+        "audio_s": 5.38,
+        "asr_tail_ms": 238.0,
+        "release_ms": 2.5,
+        "wake_during_audio_ms": 0.0,
+        "total_after_stop_ms": 880.6
+      }
+    }
+  ]
+}
