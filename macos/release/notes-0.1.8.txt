@@ -1,0 +1,15 @@
+VoxFlow 0.1.8 — la dictée garde le fil
+
+La reconnaissance conserve désormais jusqu’à deux secondes d’audio précédent entre les morceaux. Ce contexte aide à garder la continuité des phrases françaises après une pause et à mieux reconnaître les fins courtes.
+
+Les mots sont raccordés grâce à leurs horodatages, avec des protections contre les doublons et les mots perdus à la coupure. La dictée reste réactive : le tampon supplémentaire est limité à 125 Kio et les modèles sont les mêmes qu’en 0.1.7.
+
+Validation : 70 tests Python, un comparatif sur 43 audios synthétiques et cinq contrôles dans l’app installée, dont le silence, la voix faible, les pauses et le nettoyage. Les résultats et limites sont détaillés dans docs/PERFORMANCE.md. Le modèle continue de détecter la langue automatiquement ; des erreurs restent possibles selon la voix et le bruit.
+
+VoxFlow 0.1.8 — keeping the thread between audio chunks
+
+Speech recognition now retains up to two seconds of preceding audio between chunks. This context helps French sentences stay coherent after a pause and improves recognition of short endings.
+
+Timestamped words are joined with safeguards against duplicates and words lost at a boundary. Dictation stays responsive: the additional audio buffer is capped at 125 KiB, with the same models as 0.1.7.
+
+Validated with 70 Python tests, a comparison across 43 synthetic audio cases and five installed-app checks, including silence, quiet speech, pauses and cleanup. Results and limitations are documented in docs/PERFORMANCE.md. Language detection remains automatic; accuracy varies with speech and noise.

@@ -105,7 +105,7 @@ Pour Fn, choisissez **Réglages Système → Clavier → Appuyer sur 🌐 → Ne
 
 VoxFlow utilise Parakeet pour transcrire et Qwen3.5 pour nettoyer les passages qui le nécessitent en mode Complet.
 
-Sur 30 phrases françaises synthétiques, mesurées sur un M4 Pro avec 24 Go, le délai médian du moteur après relâchement est passé de **1,34 s à 0,19 s** avec la version 0.1.6, avant le collage. La version 0.1.7 corrige aussi l’attente inutile après un appui bref sans parole.
+Sur 30 phrases françaises synthétiques, mesurées sur un M4 Pro avec 24 Go, le délai médian du moteur après relâchement est passé de **1,34 s à 0,19 s** avec la version 0.1.6, avant le collage. La version 0.1.7 corrige aussi l’attente inutile après un appui bref sans parole. La version 0.1.8 garde un court contexte audio entre les morceaux pour mieux conserver le fil des phrases.
 
 Ces chiffres ne prédisent pas toutes les voix, les bruits ou les Mac. Retrouvez les conditions d’essai et les limites dans les **[mesures détaillées](docs/PERFORMANCE.md)**.
 

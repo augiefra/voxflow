@@ -5,6 +5,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     <title>VoxFlow</title>
     <language>fr</language>
     <item>
+      <title>VoxFlow 0.1.8</title>
+      <pubDate>Wed, 04 Nov 2026 15:53:26 GMT</pubDate>
+      <sparkle:version>0.1.8</sparkle:version>
+      <sparkle:shortVersionString>0.1.8</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>VoxFlow 0.1.8 — la dictée garde le fil</p><p>La reconnaissance conserve désormais jusqu’à deux secondes d’audio précédent entre les morceaux. Ce contexte aide à garder la continuité des phrases françaises après une pause et à mieux reconnaître les fins courtes.</p><p>Les mots sont raccordés grâce à leurs horodatages, avec des protections contre les doublons et les mots perdus à la coupure. La dictée reste réactive : le tampon supplémentaire est limité à 125 Kio et les modèles sont les mêmes qu’en 0.1.7.</p><p>Validation : 70 tests Python, un comparatif sur 43 audios synthétiques et cinq contrôles dans l’app installée, dont le silence, la voix faible, les pauses et le nettoyage. Les résultats et limites sont détaillés dans docs/PERFORMANCE.md. Le modèle continue de détecter la langue automatiquement ; des erreurs restent possibles selon la voix et le bruit.</p><p>VoxFlow 0.1.8 — keeping the thread between audio chunks</p><p>Speech recognition now retains up to two seconds of preceding audio between chunks. This context helps French sentences stay coherent after a pause and improves recognition of short endings.</p><p>Timestamped words are joined with safeguards against duplicates and words lost at a boundary. Dictation stays responsive: the additional audio buffer is capped at 125 KiB, with the same models as 0.1.7.</p><p>Validated with 70 Python tests, a comparison across 43 synthetic audio cases and five installed-app checks, including silence, quiet speech, pauses and cleanup. Results and limitations are documented in docs/PERFORMANCE.md. Language detection remains automatic; accuracy varies with speech and noise.</p>]]></description>
+      <enclosure url="https://github.com/augiefra/voxflow/releases/download/v0.1.8/VoxFlow-0.1.8.dmg" type="application/octet-stream" sparkle:edSignature="sExEYcP7F780eJ1DHDOVbgRY1iLtDcsoZI88vtW4rZ9tWyvsL4c1lz6I/lfZPEcXgyPTy0I49byOc0BGxkLQDw==" length="19332498"></enclosure>
+    </item>
+    <item>
       <title>VoxFlow 0.1.7</title>
       <pubDate>Tue, 03 Nov 2026 10:23:05 GMT</pubDate>
       <sparkle:version>0.1.7</sparkle:version>
@@ -69,6 +78,6 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 4R2QwcWkIw+V8l4a7l+VsHSSBS9HCdtco/jZwO8KvXZiJiepZFU8py5BwqWtTEkKBKW1GahvGNvz+BQtZYQDBQ==
-length: 13321
+edSignature: JT5r5EzS7ChXgjHMDNMq05SwVOOy0k4mDhuGEtXynQ2czJMVYWRQjyHLjFLKDGKrSwnMccz3cHc5j5HskCYKCg==
+length: 15636
 -->

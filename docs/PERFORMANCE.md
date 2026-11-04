@@ -151,11 +151,11 @@ nettoyée en 823,6 ms, dont 588,2 ms pour Qwen. Ces contrôles ne représentent 
 un percentile ni une garantie sur tous les Mac. Les mesures et les empreintes
 des moteurs embarqués sont dans le [rapport JSON](performance/2026-11-03/no-speech-fix.json).
 
-## Contexte audio et ressources — correctif local 0.1.8, 4 novembre
+## Contexte audio et ressources — version 0.1.8, 4 novembre
 
 Parakeet détecte automatiquement la langue ; l'implémentation MLX utilisée ne
 permet pas de forcer `language="fr"` sur ce chemin. Chaque morceau repartait sans
-audio précédent. La version locale 0.1.8 conserve jusqu'à 2 s d'audio et fusionne
+audio précédent. La version 0.1.8 conserve jusqu'à 2 s d'audio et fusionne
 les tokens horodatés. Les résultats partiels sont des snapshots révisables. Un
 raccord sans ancre fiable revient au décodage de la nouvelle tranche seule.
 

@@ -105,7 +105,7 @@ For Fn, set **System Settings → Keyboard → Press 🌐 key to → Do Nothing*
 
 Parakeet transcribes; in Full mode, Qwen3.5 cleans up passages that need it.
 
-On 30 synthetic French clips measured on an M4 Pro with 24 GB, median engine time after release went from **1.34 s to 0.19 s** in version 0.1.6, before paste. Version 0.1.7 also fixes unnecessary waiting after a brief silent recording.
+On 30 synthetic French clips measured on an M4 Pro with 24 GB, median engine time after release went from **1.34 s to 0.19 s** in version 0.1.6, before paste. Version 0.1.7 also fixes unnecessary waiting after a brief silent recording. Version 0.1.8 retains a short audio context between chunks to improve continuity across phrases.
 
 Results vary with voice, background noise and hardware. Read the **[measurements and limitations](docs/PERFORMANCE.md)** for the test conditions.
 
